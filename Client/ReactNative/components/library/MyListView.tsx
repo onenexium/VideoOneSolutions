@@ -12,10 +12,12 @@ import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getMyList, unfollow, type MyListEntry } from "@/services/libraryService";
 import { openSeries } from "@/utils/openSeries";
+import { colors } from "@/constants/theme";
 
 type Sort = "added" | "updated";
 
-export default function MyListScreen() {
+/** The My List tab on Home: the series the viewer follows (guests too: the list is the session's account's). */
+export default function MyListView({ bottomInset = 0 }: { bottomInset?: number }) {
   const insets = useSafeAreaInsets();
   const [sort, setSort] = useState<Sort>("added");
   const [entries, setEntries] = useState<MyListEntry[]>([]);
@@ -83,11 +85,8 @@ export default function MyListScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Back">
-          <Text style={styles.back}>‹</Text>
-        </TouchableOpacity>
         <Text style={styles.title}>My List</Text>
-        <TouchableOpacity onPress={() => router.push("/history" as any)} accessibilityRole="button">
+        <TouchableOpacity onPress={() => router.push("/history" as any)} accessibilityRole="button" hitSlop={12}>
           <Text style={styles.count}>History</Text>
         </TouchableOpacity>
         {count && (
@@ -111,7 +110,7 @@ export default function MyListScreen() {
       </View>
 
       {loading ? (
-        <ActivityIndicator style={styles.center} color="#FFFFFF" />
+        <ActivityIndicator style={styles.center} color={colors.text} />
       ) : error ? (
         <View style={styles.center}>
           <Text style={styles.message}>Error: {error}</Text>
@@ -129,7 +128,7 @@ export default function MyListScreen() {
           keyExtractor={(e) => e.shortId}
           onEndReached={loadMore}
           onEndReachedThreshold={1.5}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+          contentContainerStyle={{ paddingBottom: bottomInset + 24 }}
           renderItem={({ item }) => {
             const available = item.availability === "available" && item.meta;
             return (
@@ -169,26 +168,25 @@ export default function MyListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
-  header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 48, gap: 12 },
-  back: { color: "#FFFFFF", fontSize: 32 },
-  title: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", flex: 1 },
-  count: { color: "#B3B3B3", fontSize: 13 },
+  container: { flex: 1, backgroundColor: colors.background },
+  header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 56, gap: 16 },
+  title: { color: colors.text, fontSize: 22, fontWeight: "700", flex: 1 },
+  count: { color: colors.textMuted, fontSize: 13 },
   sorts: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingBottom: 8 },
-  sort: { backgroundColor: "#1A1A1A", borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
-  sortActive: { backgroundColor: "#3A3A3A" },
-  sortText: { color: "#FFFFFF", fontSize: 12 },
+  sort: { backgroundColor: colors.surface, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
+  sortActive: { backgroundColor: colors.surfaceHigh },
+  sortText: { color: colors.text, fontSize: 12 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  message: { color: "#FFFFFF", fontSize: 14 },
-  retry: { marginTop: 12, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: "#333333" },
-  retryText: { color: "#FFFFFF" },
+  message: { color: colors.text, fontSize: 14 },
+  retry: { marginTop: 12, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: colors.surfaceHigh },
+  retryText: { color: colors.text },
   row: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 8, gap: 12 },
   unavailable: { opacity: 0.45 },
   rowMain: { flex: 1, flexDirection: "row", alignItems: "center", gap: 12 },
-  poster: { width: 60, height: 90, borderRadius: 6, backgroundColor: "#1A1A1A" },
+  poster: { width: 60, height: 90, borderRadius: 6, backgroundColor: colors.surface },
   rowText: { flex: 1, gap: 4 },
-  rowTitle: { color: "#FFFFFF", fontSize: 15, fontWeight: "600" },
-  note: { color: "#B3B3B3", fontSize: 12 },
-  badge: { color: "#5BD98A", fontSize: 12, fontWeight: "600" },
-  remove: { color: "#FF6B6B", fontSize: 13 },
+  rowTitle: { color: colors.text, fontSize: 15, fontWeight: "600" },
+  note: { color: colors.textMuted, fontSize: 12 },
+  badge: { color: colors.success, fontSize: 12, fontWeight: "600" },
+  remove: { color: colors.danger, fontSize: 13 },
 });

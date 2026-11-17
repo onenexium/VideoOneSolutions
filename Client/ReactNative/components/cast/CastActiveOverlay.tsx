@@ -9,6 +9,7 @@ import {
 import AirPlayRoutePickerView from './AirPlayRoutePickerView';
 import SvgIcon from '../ui/SvgIcon';
 import { AirPlayRelay } from './AirPlayRelay';
+import { colors } from "@/constants/theme";
 
 interface CastActiveOverlayProps {
   deviceName?: string;
@@ -73,7 +74,7 @@ const CastActiveOverlay: React.FC<CastActiveOverlayProps> = ({
   return (
     <View style={styles.container} pointerEvents="auto">
       <View style={styles.panel}>
-        <SvgIcon name="cast" style={styles.iconFrame} color="#7EA2FF" />
+        <SvgIcon name="cast" style={styles.iconFrame} color={colors.accent} />
 
         <Text style={styles.title}>Casting to your TV</Text>
         <Text style={styles.device}>{label}</Text>
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
     maxWidth: 320,
     alignItems: 'center',
     borderRadius: 8,
-    backgroundColor: 'rgba(18, 20, 28, 0.94)',
+    backgroundColor: colors.raised,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(255, 255, 255, 0.18)',
     paddingHorizontal: 24,
@@ -130,13 +131,13 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   title: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 20,
     fontWeight: '700',
     lineHeight: 26,
   },
   device: {
-    color: '#9DB7FF',
+    color: colors.accent,
     fontSize: 14,
     fontWeight: '600',
     marginTop: 8,
@@ -158,14 +159,14 @@ const styles = StyleSheet.create({
     minWidth: 132,
     height: 40,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 22,
     paddingHorizontal: 18,
   },
   stopButtonText: {
-    color: '#11131A',
+    color: colors.onAccent,
     fontSize: 14,
     fontWeight: '700',
   },

@@ -4,6 +4,7 @@ import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
 import { Image } from "expo-image";
 import { DramaChannelMeta } from "../../types/drama";
 import { formatNumber } from "../../utils/dramaUtils";
+import { colors } from "@/constants/theme";
 
 interface DramaCoverProps {
   drama: DramaChannelMeta;
@@ -231,12 +232,12 @@ const styles = StyleSheet.create({
   trendingTopRankBadge: {
     width: 32,
     height: 16,
-    backgroundColor: "#FFDF5A",
+    backgroundColor: colors.gold,
   },
   trendingNormalRankBadge: {
     width: 15,
     height: 16,
-    backgroundColor: "#FE3BD3",
+    backgroundColor: colors.accent,
   },
   trendingRankText: {
     fontSize: 12,
@@ -246,13 +247,13 @@ const styles = StyleSheet.create({
   },
   trendingTopRankText: {
     fontFamily: "DINCond-Black",
-    color: "#A3442C",
+    color: colors.background,
   },
   trendingNormalRankText: {
     fontFamily: "DIN Condensed",
     fontWeight: "700",
     fontSize: 15,
-    color: "#FFFFFF",
+    color: colors.text,
     lineHeight: 12,
   },
   trendingInfoContainer: {
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   trendingTitleText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "500",
     lineHeight: 20,
@@ -281,7 +282,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   trendingPlayCountText: {
-    color: "#737A87",
+    color: colors.textMuted,
     fontSize: 12,
     fontWeight: "400",
     lineHeight: 16,
@@ -307,14 +308,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
-    backgroundColor: "#FE3BD3",
+    backgroundColor: colors.accent,
     paddingHorizontal: 3.5,
     paddingVertical: 2.5,
     borderRadius: 8,
     borderTopRightRadius: 0,
   },
   newBadgeText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 10,
     fontWeight: "600",
     lineHeight: 12,
@@ -336,13 +337,13 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   newPlayCountText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 12,
     fontWeight: "500",
     lineHeight: 17,
   },
   newTitleText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "500",
     lineHeight: 20,
@@ -383,13 +384,13 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   recommendPlayCountText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 13,
     fontWeight: "500",
     lineHeight: 18,
   },
   recommendTitleText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "500",
     lineHeight: 20,

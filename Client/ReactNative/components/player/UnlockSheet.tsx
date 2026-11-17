@@ -12,6 +12,7 @@ import {
   unlock,
   type Wallet,
 } from "@/services/walletService";
+import { colors } from "@/constants/theme";
 
 interface Props {
   series: string;
@@ -131,7 +132,7 @@ const UnlockSheet: React.FC<Props> = ({ series, episode, coins, onUnlocked, onDi
               accessibilityRole="button"
               onPress={() => run({ episode, coins: price })}
             >
-              {busy ? <ActivityIndicator color="#000" /> : <Text style={styles.primaryText}>Unlock for {price} coins</Text>}
+              {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text style={styles.primaryText}>Unlock for {price} coins</Text>}
             </TouchableOpacity>
             {offer && (
               <TouchableOpacity
@@ -174,18 +175,18 @@ const UnlockSheet: React.FC<Props> = ({ series, episode, coins, onUnlocked, onDi
 
 const styles = StyleSheet.create({
   overlay: { ...StyleSheet.absoluteFillObject, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.55)", zIndex: 500 },
-  sheet: { backgroundColor: "#121212", borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 20, gap: 12 },
-  title: { color: "#FFFFFF", fontSize: 20, fontWeight: "700" },
-  hint: { color: "#B3B3B3", fontSize: 14 },
-  primary: { backgroundColor: "#FFFFFF", borderRadius: 10, height: 50, alignItems: "center", justifyContent: "center" },
-  primaryText: { color: "#000000", fontSize: 16, fontWeight: "700" },
-  secondary: { backgroundColor: "#2A2A2A", borderRadius: 10, height: 46, alignItems: "center", justifyContent: "center" },
-  secondaryText: { color: "#FFFFFF", fontSize: 14, fontWeight: "600" },
+  sheet: { backgroundColor: colors.raised, borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 20, gap: 12 },
+  title: { color: colors.text, fontSize: 20, fontWeight: "700" },
+  hint: { color: colors.textMuted, fontSize: 14 },
+  primary: { backgroundColor: colors.accent, borderRadius: 10, height: 50, alignItems: "center", justifyContent: "center" },
+  primaryText: { color: colors.onAccent, fontSize: 16, fontWeight: "700" },
+  secondary: { backgroundColor: colors.surfaceHigh, borderRadius: 10, height: 46, alignItems: "center", justifyContent: "center" },
+  secondaryText: { color: colors.text, fontSize: 14, fontWeight: "600" },
   disabled: { opacity: 0.5 },
-  link: { color: "#FFFFFF", textAlign: "center", textDecorationLine: "underline", paddingVertical: 4 },
+  link: { color: colors.text, textAlign: "center", textDecorationLine: "underline", paddingVertical: 4 },
   autoRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  autoText: { color: "#DDDDDD", fontSize: 13, flex: 1 },
-  error: { color: "#FF6B6B", fontSize: 13 },
+  autoText: { color: colors.textMuted, fontSize: 13, flex: 1 },
+  error: { color: colors.danger, fontSize: 13 },
 });
 
 export default UnlockSheet;

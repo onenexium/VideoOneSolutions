@@ -8,6 +8,7 @@ import {
   updateNotificationPreferences,
   type NotificationPreferences,
 } from "@/services/supportService";
+import { colors } from "@/constants/theme";
 
 type Switchable = "newEpisodes" | "continueWatching" | "coinsExpiring" | "checkinReminder" | "hideTitles";
 const ROWS: { key: Switchable; label: string; note?: string; marketing?: boolean }[] = [
@@ -61,7 +62,7 @@ export default function NotificationsScreen() {
         <Text style={styles.title}>Notifications</Text>
       </View>
       {!prefs ? (
-        message ? <Text style={[styles.note, styles.pad]}>{message}</Text> : <ActivityIndicator color="#FFFFFF" />
+        message ? <Text style={[styles.note, styles.pad]}>{message}</Text> : <ActivityIndicator color={colors.text} />
       ) : (
         <ScrollView contentContainerStyle={[styles.pad, { paddingBottom: insets.bottom + 32 }]}>
           {ROWS.map((row) => (
@@ -83,14 +84,14 @@ export default function NotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 48, gap: 12 },
-  back: { color: "#FFFFFF", fontSize: 32 },
-  title: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", flex: 1 },
+  back: { color: colors.text, fontSize: 32 },
+  title: { color: colors.text, fontSize: 18, fontWeight: "700", flex: 1 },
   pad: { padding: 16, gap: 14 },
   row: { flexDirection: "row", alignItems: "center", gap: 12 },
-  text: { color: "#FFFFFF", fontSize: 15 },
-  note: { color: "#B3B3B3", fontSize: 12 },
-  error: { color: "#FF6B6B", fontSize: 14 },
+  text: { color: colors.text, fontSize: 15 },
+  note: { color: colors.textMuted, fontSize: 12 },
+  error: { color: colors.danger, fontSize: 14 },
 });

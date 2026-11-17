@@ -16,6 +16,7 @@ import LandscapeQualitySelector from "../ui/LandscapeQualitySelector";
 import LandscapeEpisodeSelector from "../ui/LandscapeEpisodeSelector";
 import UserAvatar from "../shared/UserAvatar";
 import { DramaEpisode, PlaybackSource } from "../../types/drama";
+import { colors } from "@/constants/theme";
 
 interface PlaybackControlsProps {
   // Basic state
@@ -185,7 +186,7 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
       {/* Loading indicator */}
       {showLoading && (
         <View style={styles.loadingContainer} pointerEvents="box-none">
-          <ActivityIndicator size="large" color="#fff" />
+          <ActivityIndicator size="large" color={colors.text} />
         </View>
       )}
 
@@ -226,7 +227,7 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
               >
                 <SvgIcon
                   name={isLiked ? "heart-filled" : "heart-outline"}
-                  color={isLiked ? "#FF3737" : "#FFFFFF"}
+                  color={isLiked ? colors.accent : colors.text}
                   style={styles.landscapeControlIcon}
                 />
               </TouchableOpacity>
@@ -382,10 +383,10 @@ const styles = StyleSheet.create({
   fullscreenIconImage: {
     width: 20,
     height: 20,
-    tintColor: "#FFFFFF",
+    tintColor: colors.text,
   },
   fullscreenButtonText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 12,
     fontWeight: "400",
     lineHeight: 16,
@@ -429,10 +430,10 @@ const styles = StyleSheet.create({
   landscapeControlIcon: {
     width: 28,
     height: 28,
-    tintColor: "#FFFFFF",
+    tintColor: colors.text,
   },
   landscapeControlNumber: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 10,
     fontWeight: "700",
     lineHeight: 12,
@@ -473,7 +474,7 @@ const styles = StyleSheet.create({
     height: 40,
   },
   interactionCount: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "400",
     textShadowColor: "rgba(0, 0, 0, 0.2)",

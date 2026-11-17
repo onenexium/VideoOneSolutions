@@ -3,6 +3,7 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View }
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getTickets, type Ticket } from "@/services/supportService";
+import { colors } from "@/constants/theme";
 
 const STATUS: Record<Ticket["status"], string> = {
   received: "Received",
@@ -39,7 +40,7 @@ export default function TicketsScreen() {
       {error ? (
         <Text style={[styles.note, styles.pad]}>{error}</Text>
       ) : tickets === null ? (
-        <ActivityIndicator color="#FFFFFF" />
+        <ActivityIndicator color={colors.text} />
       ) : tickets.length === 0 ? (
         <Text style={[styles.note, styles.pad]}>You have no tickets.</Text>
       ) : (
@@ -70,14 +71,14 @@ export default function TicketsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 48, gap: 12 },
-  back: { color: "#FFFFFF", fontSize: 32 },
-  title: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", flex: 1 },
+  back: { color: colors.text, fontSize: 32 },
+  title: { color: colors.text, fontSize: 18, fontWeight: "700", flex: 1 },
   pad: { padding: 16 },
   row: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
-  text: { color: "#FFFFFF", fontSize: 15 },
-  note: { color: "#B3B3B3", fontSize: 13 },
-  status: { color: "#FFD08A", fontSize: 13 },
+  text: { color: colors.text, fontSize: 15 },
+  note: { color: colors.textMuted, fontSize: 13 },
+  status: { color: colors.gold, fontSize: 13 },
 });

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, type ImageStyle, type StyleProp } from "react-native";
 import Svg, { Rect } from "react-native-svg";
+import { colors } from "@/constants/theme";
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 const BAR_HEIGHTS = [
@@ -42,7 +43,7 @@ export default function PlayingIcon({ style }: { style?: StyleProp<ImageStyle> }
             outputRange: heights,
           })}
           rx={1}
-          fill="#FE2C55"
+          fill={colors.accent}
         />
       ))}
     </Svg>

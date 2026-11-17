@@ -24,7 +24,8 @@ import {
 import { ApiError } from "@/services/api";
 import { loadAppConfig, type AppConfig } from "@/services/appConfigService";
 import { logout } from "@/services/authService";
-import { getDataSaver, loadPlaybackSettings, setDataSaver } from "@/services/playbackSettings";
+import DataSaverRow from "@/components/profile/DataSaverRow";
+import { colors } from "@/constants/theme";
 
 const NAMES: Record<string, string> = { hi: "हिन्दी", en: "English", ta: "தமிழ்" };
 const nameOf = (code: string) => NAMES[code] ?? code;
@@ -49,12 +50,10 @@ export default function SettingsScreen() {
   const [step, setStep] = useState<"idle" | "code">("idle");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
-  const [saver, setSaver] = useState(getDataSaver());
 
   useEffect(() => {
     loadAppConfig().then(setConfig);
     listDevices().then(setDevices).catch(() => setDevices([]));
-    loadPlaybackSettings().then(() => setSaver(getDataSaver()));
   }, []);
   useEffect(() => setName(viewer?.displayName ?? ""), [viewer?.displayName]);
 
@@ -73,20 +72,7 @@ export default function SettingsScreen() {
   const playbackRow = (
     <>
         <Text style={styles.section}>Playback</Text>
-        <View style={styles.switchRow}>
-          <View style={styles.flex}>
-            <Text style={styles.text}>Data saver</Text>
-            <Text style={styles.note}>Plays at 360p at most to use less data.</Text>
-          </View>
-          <Switch
-            value={saver}
-            onValueChange={(on) => {
-              setSaver(on);
-              void setDataSaver(on);
-            }}
-            accessibilityLabel="Data saver"
-          />
-        </View>
+        <DataSaverRow />
     </>
   );
 
@@ -148,7 +134,7 @@ export default function SettingsScreen() {
             onChangeText={setName}
             maxLength={40}
             placeholder="Your name"
-            placeholderTextColor="#777"
+            placeholderTextColor={colors.textMuted}
             accessibilityLabel="Name"
           />
           <TouchableOpacity
@@ -314,37 +300,37 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   center: { alignItems: "center", justifyContent: "center", gap: 16 },
   flex: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 48, gap: 12 },
-  back: { color: "#FFFFFF", fontSize: 32 },
-  title: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", flex: 1 },
+  back: { color: colors.text, fontSize: 32 },
+  title: { color: colors.text, fontSize: 18, fontWeight: "700", flex: 1 },
   body: { padding: 16, gap: 10 },
-  section: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", marginTop: 18 },
-  label: { color: "#B3B3B3", fontSize: 13, marginTop: 6 },
-  text: { color: "#FFFFFF", fontSize: 15 },
-  note: { color: "#B3B3B3", fontSize: 12 },
+  section: { color: colors.text, fontSize: 18, fontWeight: "700", marginTop: 18 },
+  label: { color: colors.textMuted, fontSize: 13, marginTop: 6 },
+  text: { color: colors.text, fontSize: 15 },
+  note: { color: colors.textMuted, fontSize: 12 },
   row: { flexDirection: "row", gap: 8, alignItems: "center" },
-  input: { backgroundColor: "#1A1A1A", color: "#FFFFFF", borderRadius: 10, paddingHorizontal: 14, height: 48, fontSize: 15 },
+  input: { backgroundColor: colors.surface, color: colors.text, borderRadius: 10, paddingHorizontal: 14, height: 48, fontSize: 15 },
   code: { fontSize: 22, letterSpacing: 6, textAlign: "center" },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: { backgroundColor: "#1A1A1A", borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8 },
-  chipOn: { backgroundColor: "#3A3A3A", borderWidth: 1, borderColor: "#FFFFFF" },
-  chipText: { color: "#FFFFFF", fontSize: 13 },
+  chip: { backgroundColor: colors.surface, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8 },
+  chipOn: { backgroundColor: colors.surfaceHigh, borderWidth: 1, borderColor: colors.accent },
+  chipText: { color: colors.text, fontSize: 13 },
   switchRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   deviceRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 6 },
-  primary: { backgroundColor: "#FFFFFF", borderRadius: 10, height: 48, paddingHorizontal: 32, alignItems: "center", justifyContent: "center" },
-  primaryText: { color: "#000000", fontSize: 15, fontWeight: "700" },
-  secondary: { backgroundColor: "#2A2A2A", borderRadius: 10, height: 44, paddingHorizontal: 16, alignItems: "center", justifyContent: "center" },
-  secondaryText: { color: "#FFFFFF", fontSize: 14, fontWeight: "600" },
+  primary: { backgroundColor: colors.accent, borderRadius: 10, height: 48, paddingHorizontal: 32, alignItems: "center", justifyContent: "center" },
+  primaryText: { color: colors.onAccent, fontSize: 15, fontWeight: "700" },
+  secondary: { backgroundColor: colors.surfaceHigh, borderRadius: 10, height: 44, paddingHorizontal: 16, alignItems: "center", justifyContent: "center" },
+  secondaryText: { color: colors.text, fontSize: 14, fontWeight: "600" },
   disabled: { opacity: 0.5 },
-  danger: { color: "#FF6B6B", fontSize: 14 },
-  dangerButton: { backgroundColor: "#3A1A1A", borderRadius: 10, height: 46, alignItems: "center", justifyContent: "center", marginTop: 8 },
-  dangerText: { color: "#FF6B6B", fontSize: 15, fontWeight: "700" },
-  link: { color: "#FFFFFF", textAlign: "center", paddingVertical: 8, textDecorationLine: "underline" },
+  danger: { color: colors.danger, fontSize: 14 },
+  dangerButton: { backgroundColor: colors.surfaceHigh, borderRadius: 10, height: 46, alignItems: "center", justifyContent: "center", marginTop: 8 },
+  dangerText: { color: colors.danger, fontSize: 15, fontWeight: "700" },
+  link: { color: colors.text, textAlign: "center", paddingVertical: 8, textDecorationLine: "underline" },
   codeBox: { gap: 10 },
-  pendingBox: { backgroundColor: "#3A2A1A", borderRadius: 10, padding: 14, gap: 10 },
-  pendingText: { color: "#FFD08A", fontSize: 14 },
-  error: { color: "#FF6B6B", fontSize: 14 },
+  pendingBox: { backgroundColor: colors.surfaceHigh, borderRadius: 10, padding: 14, gap: 10 },
+  pendingText: { color: colors.gold, fontSize: 14 },
+  error: { color: colors.danger, fontSize: 14 },
 });

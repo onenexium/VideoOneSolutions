@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { DramaEpisode } from "../../types/drama";
+import { colors } from "@/constants/theme";
 
 interface EpisodeSelectorModalProps {
   visible: boolean;
@@ -278,7 +279,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   modalContainer: {
-    backgroundColor: "#000000",
+    backgroundColor: colors.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
@@ -334,7 +335,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   dramaTitle: {
-    color: "#CACBCE",
+    color: colors.textMuted,
     fontSize: 16,
     fontWeight: "500",
     lineHeight: 24,
@@ -345,7 +346,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   episodeCount: {
-    color: "#76797E",
+    color: colors.textMuted,
     fontSize: 14,
     lineHeight: 16,
   },
@@ -356,7 +357,7 @@ const styles = StyleSheet.create({
   unlockAllButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFDD99",
+    backgroundColor: colors.gold,
     borderRadius: 4,
     paddingHorizontal: 4,
     paddingVertical: 0,
@@ -376,10 +377,10 @@ const styles = StyleSheet.create({
   unlockAllIcon: {
     width: 12,
     height: 12,
-    tintColor: "#703A17",
+    tintColor: colors.background,
   },
   unlockAllButtonText: {
-    color: "#703A17",
+    color: colors.background,
     fontSize: 14,
     fontWeight: "500",
     lineHeight: 24,
@@ -408,12 +409,12 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   currentEpisodeButton: {
-    backgroundColor: "rgba(255, 23, 100, 0.3)",
+    backgroundColor: colors.accentSoft,
     borderWidth: 1,
-    borderColor: "rgba(255, 23, 100, 0.3)",
+    borderColor: colors.accentSoft,
   },
   episodeNumber: {
-    color: "#CACBCE",
+    color: colors.textMuted,
     fontSize: 14,
     fontWeight: "400",
     lineHeight: 20,
@@ -421,7 +422,7 @@ const styles = StyleSheet.create({
     fontFamily: "PingFang SC",
   },
   currentEpisodeNumber: {
-    color: "#FF1764",
+    color: colors.accent,
   },
   playIcon: {
     position: "absolute",

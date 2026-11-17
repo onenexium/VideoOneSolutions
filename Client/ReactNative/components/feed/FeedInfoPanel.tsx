@@ -2,6 +2,7 @@ import SvgIcon from "@/components/ui/SvgIcon";
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { FeedItem } from "../../types/drama";
+import { colors } from "@/constants/theme";
 
 interface InfoPanelProps {
   feedItem: FeedItem;
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
   playIconContainer: {
     width: 18,
     height: 18,
-    backgroundColor: "#FF1764",
+    backgroundColor: colors.accent,
     borderRadius: 2.25,
     justifyContent: "center",
     alignItems: "center",
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
   playIcon: {
     width: 16,
     height: 16,
-    tintColor: "#FFFFFF",
+    tintColor: colors.text,
   },
   anchorContent: {
     flexDirection: "row",
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   categoryText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "500",
     lineHeight: 18,
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.36)",
   },
   dramaTitle: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "500",
     lineHeight: 20,
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   usernameText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 17,
     fontWeight: "500",
     lineHeight: 20,

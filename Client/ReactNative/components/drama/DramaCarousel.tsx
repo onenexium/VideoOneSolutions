@@ -16,6 +16,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { BlurView as _BlurView } from "expo-blur";
 import { DramaChannelMeta } from "../../types/drama";
+import { colors } from "@/constants/theme";
 
 const BlurView = Animated.createAnimatedComponent(_BlurView);
 
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
     transform: [{ translateX: -50 }],
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 23, 100, 0.9)",
+    backgroundColor: colors.accent,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 6,
@@ -229,10 +230,10 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     marginRight: 6,
-    tintColor: "#fff",
+    tintColor: colors.text,
   },
   playText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "600",
   },

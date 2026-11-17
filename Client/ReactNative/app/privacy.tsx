@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { requestStepUp } from "@/services/accountService";
 import { ApiError } from "@/services/api";
 import { createPrivacyRequest, getPrivacy, setNominees, updateConsent, type Privacy } from "@/services/supportService";
+import { colors } from "@/constants/theme";
 
 type RequestKind = "access" | "correction" | "erasure" | "nomination";
 const KINDS: { kind: RequestKind; label: string }[] = [
@@ -110,7 +111,7 @@ export default function PrivacyScreen() {
         <Text style={styles.title}>Privacy</Text>
       </View>
       {!data ? (
-        error ? <Text style={[styles.note, styles.pad]}>{error}</Text> : <ActivityIndicator color="#FFFFFF" />
+        error ? <Text style={[styles.note, styles.pad]}>{error}</Text> : <ActivityIndicator color={colors.text} />
       ) : (
         <ScrollView contentContainerStyle={[styles.pad, { paddingBottom: insets.bottom + 32 }]} keyboardShouldPersistTaps="handled">
           <Text style={styles.section}>Your data</Text>
@@ -183,11 +184,11 @@ export default function PrivacyScreen() {
           {step && (
             <View style={styles.box}>
               {step.what === "request" ? (
-                <TextInput style={[styles.input, styles.multiline]} value={details} onChangeText={setDetails} multiline maxLength={2000} placeholder="Details (what to correct, and so on)" placeholderTextColor="#777" accessibilityLabel="Details" />
+                <TextInput style={[styles.input, styles.multiline]} value={details} onChangeText={setDetails} multiline maxLength={2000} placeholder="Details (what to correct, and so on)" placeholderTextColor={colors.textMuted} accessibilityLabel="Details" />
               ) : (
                 <>
-                  <TextInput style={styles.input} value={nomineeName} onChangeText={setNomineeName} placeholder="Name (leave empty to remove)" placeholderTextColor="#777" accessibilityLabel="Nominee name" />
-                  <TextInput style={styles.input} value={nomineePhone} onChangeText={setNomineePhone} keyboardType="phone-pad" placeholder="+91 phone number" placeholderTextColor="#777" accessibilityLabel="Nominee phone" />
+                  <TextInput style={styles.input} value={nomineeName} onChangeText={setNomineeName} placeholder="Name (leave empty to remove)" placeholderTextColor={colors.textMuted} accessibilityLabel="Nominee name" />
+                  <TextInput style={styles.input} value={nomineePhone} onChangeText={setNomineePhone} keyboardType="phone-pad" placeholder="+91 phone number" placeholderTextColor={colors.textMuted} accessibilityLabel="Nominee phone" />
                 </>
               )}
               <Text style={styles.note}>Enter the 6-digit code we sent you.</Text>
@@ -208,25 +209,25 @@ export default function PrivacyScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 48, gap: 12 },
-  back: { color: "#FFFFFF", fontSize: 32 },
-  title: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", flex: 1 },
+  back: { color: colors.text, fontSize: 32 },
+  title: { color: colors.text, fontSize: 18, fontWeight: "700", flex: 1 },
   pad: { padding: 16, gap: 10 },
-  section: { color: "#FFFFFF", fontSize: 17, fontWeight: "700", marginTop: 14 },
-  text: { color: "#FFFFFF", fontSize: 14, lineHeight: 20 },
-  note: { color: "#B3B3B3", fontSize: 12, lineHeight: 18 },
+  section: { color: colors.text, fontSize: 17, fontWeight: "700", marginTop: 14 },
+  text: { color: colors.text, fontSize: 14, lineHeight: 20 },
+  note: { color: colors.textMuted, fontSize: 12, lineHeight: 18 },
   box: { gap: 10, marginTop: 8 },
   flex: { flex: 1 },
   switchRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  input: { backgroundColor: "#1A1A1A", color: "#FFFFFF", borderRadius: 10, paddingHorizontal: 14, minHeight: 48, fontSize: 15 },
+  input: { backgroundColor: colors.surface, color: colors.text, borderRadius: 10, paddingHorizontal: 14, minHeight: 48, fontSize: 15 },
   multiline: { minHeight: 90, textAlignVertical: "top", paddingTop: 12 },
   code: { fontSize: 22, letterSpacing: 6, textAlign: "center" },
-  primary: { backgroundColor: "#FFFFFF", borderRadius: 10, height: 48, alignItems: "center", justifyContent: "center" },
-  primaryText: { color: "#000000", fontSize: 15, fontWeight: "700" },
-  secondary: { backgroundColor: "#2A2A2A", borderRadius: 10, minHeight: 44, alignItems: "center", justifyContent: "center", paddingHorizontal: 12 },
-  secondaryText: { color: "#FFFFFF", fontSize: 14 },
+  primary: { backgroundColor: colors.accent, borderRadius: 10, height: 48, alignItems: "center", justifyContent: "center" },
+  primaryText: { color: colors.onAccent, fontSize: 15, fontWeight: "700" },
+  secondary: { backgroundColor: colors.surfaceHigh, borderRadius: 10, minHeight: 44, alignItems: "center", justifyContent: "center", paddingHorizontal: 12 },
+  secondaryText: { color: colors.text, fontSize: 14 },
   disabled: { opacity: 0.5 },
-  link: { color: "#FFFFFF", textAlign: "center", paddingVertical: 8, textDecorationLine: "underline" },
-  error: { color: "#FF6B6B", fontSize: 14 },
+  link: { color: colors.text, textAlign: "center", paddingVertical: 8, textDecorationLine: "underline" },
+  error: { color: colors.danger, fontSize: 14 },
 });

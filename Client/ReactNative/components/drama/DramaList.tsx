@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from
 import { DramaChannelMeta } from "../../types/drama";
 import DramaCover from "./DramaCover";
 import SvgIcon from "../ui/SvgIcon";
+import { colors } from "@/constants/theme";
 
 interface DramaListProps {
   data: DramaChannelMeta[];
@@ -176,7 +177,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: colors.text,
     marginBottom: 12,
     paddingHorizontal: 16,
     letterSpacing: 0.2,
@@ -189,7 +190,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   titleInRow: { marginBottom: 0 },
-  seeAll: { color: "#B3B3B3", fontSize: 13 },
+  seeAll: { color: colors.textMuted, fontSize: 13 },
   seeAllSlot: { flex: 1, alignItems: "flex-end" },
   trendingTitle: {
     flexDirection: "row",

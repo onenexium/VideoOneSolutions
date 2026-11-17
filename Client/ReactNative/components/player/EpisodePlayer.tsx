@@ -8,6 +8,7 @@ import PlaybackSpeedSelector from "../ui/PlaybackSpeedSelector";
 import CastButton from "../cast/CastButton";
 import type { CastController } from "../../hooks/useCast";
 import { DramaEpisode } from "../../types/drama";
+import { colors } from "@/constants/theme";
 
 const getScreenDimensions = () => {
   const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
@@ -129,7 +130,7 @@ const EpisodePlayer: React.FC<EpisodePlayerProps> = ({
       StyleSheet.create({
         container: {
           flex: 1,
-          backgroundColor: "#000",
+          backgroundColor: colors.background,
         },
         videoContainer: {
           width: "100%",
@@ -223,8 +224,8 @@ const EpisodePlayer: React.FC<EpisodePlayerProps> = ({
                 title={dramaTitle}
                 coverUrl={dramaCoverUrl}
                 size={24}
-                color="#FFFFFF"
-                activeColor="#5B8CFF"
+                color={colors.text}
+                activeColor={colors.accent}
               />
             </View>
           </SafeAreaView>

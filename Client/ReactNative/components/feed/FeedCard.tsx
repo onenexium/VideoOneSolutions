@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { FeedItem } from "../../types/drama";
+import { colors } from "@/constants/theme";
 
 interface FeedCardProps {
   feedItem: FeedItem;
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   title: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 16,
     fontWeight: "500",
     lineHeight: 24,
@@ -174,16 +175,16 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     marginRight: 4,
-    tintColor: "#FFFFFF",
+    tintColor: colors.text,
   },
   statsText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "400",
     lineHeight: 20,
   },
   playButton: {
-    backgroundColor: "#FE2C55",
+    backgroundColor: colors.accent,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   playButtonText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 15,
     fontWeight: "500",
     lineHeight: 21,

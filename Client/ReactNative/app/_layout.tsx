@@ -1,16 +1,12 @@
 import React, { useEffect } from "react";
 import { AppState } from "react-native";
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { DarkTheme, ThemeProvider, type Theme } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 
-import { useColorScheme } from "@/hooks/useColorScheme";
+import { colors } from "@/constants/theme";
 import { USE_MOCK_API } from "@/services/api";
 import { loadAppConfig } from "@/services/appConfigService";
 import { setLanguage } from "@/services/i18n";
@@ -24,8 +20,21 @@ import { checkFirstRun } from "@/services/firstRun";
 import { getGate } from "@/services/appGate";
 import { getViewer } from "@/services/session";
 
+/** Always dark, in the website's colours, whatever the phone's setting: no white flash between screens. */
+const NAV_THEME: Theme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    primary: colors.accent,
+    background: colors.background,
+    card: colors.raised,
+    text: colors.text,
+    border: colors.border,
+    notification: colors.accent,
+  },
+};
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const viewerLanguage = useViewer()?.appLanguage;
   // The app speaks the language the viewer chose (until they choose, the one picked at first run).
   useEffect(() => {
@@ -65,7 +74,7 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={NAV_THEME}>
       <Stack initialRouteName="index">
         {/* home */}
         <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -85,7 +94,6 @@ export default function RootLayout() {
         {/* series page, search, my list */}
         <Stack.Screen name="series" options={{ headerShown: false }} />
         <Stack.Screen name="search" options={{ headerShown: false }} />
-        <Stack.Screen name="my_list" options={{ headerShown: false }} />
         <Stack.Screen name="history" options={{ headerShown: false }} />
         <Stack.Screen name="report" options={{ headerShown: false }} />
         <Stack.Screen name="help" options={{ headerShown: false }} />
@@ -105,7 +113,7 @@ export default function RootLayout() {
       <OfflineBanner />
       <FirstRun />
       <AppGate />
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
     </ThemeProvider>
   );
 }

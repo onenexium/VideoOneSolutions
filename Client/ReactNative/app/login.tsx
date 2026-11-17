@@ -31,6 +31,7 @@ import {
   type LoginStep,
 } from "@/services/authService";
 import { getViewer } from "@/services/session";
+import { colors } from "@/constants/theme";
 
 const RESEND_SECONDS = 30;
 
@@ -230,7 +231,7 @@ function Button(props: { label: string; onPress: () => void; busy: boolean; seco
       accessibilityRole="button"
       onPress={props.onPress}
     >
-      {props.busy ? <ActivityIndicator color="#000" /> : <Text style={styles.buttonText}>{props.label}</Text>}
+      {props.busy ? <ActivityIndicator color={colors.onAccent} /> : <Text style={styles.buttonText}>{props.label}</Text>}
     </TouchableOpacity>
   );
 }
@@ -256,7 +257,7 @@ function PhoneStep(props: {
           autoComplete="tel"
           textContentType="telephoneNumber"
           placeholder="Mobile number"
-          placeholderTextColor="#777"
+          placeholderTextColor={colors.textMuted}
           maxLength={16}
           accessibilityLabel="Mobile number"
         />
@@ -303,7 +304,7 @@ function EmailLoginStep(props: {
         autoComplete="email"
         textContentType="emailAddress"
         placeholder="Email"
-        placeholderTextColor="#777"
+        placeholderTextColor={colors.textMuted}
         accessibilityLabel="Email"
       />
       <TextInput
@@ -314,7 +315,7 @@ function EmailLoginStep(props: {
         autoComplete="current-password"
         textContentType="password"
         placeholder="Password"
-        placeholderTextColor="#777"
+        placeholderTextColor={colors.textMuted}
         accessibilityLabel="Password"
       />
       <Button
@@ -365,7 +366,7 @@ function EmailCodeStep(props: {
         maxLength={6}
         autoFocus
         placeholder="••••••"
-        placeholderTextColor="#555"
+        placeholderTextColor={colors.textMuted}
         accessibilityLabel="6-digit code"
       />
       <TextInput
@@ -376,7 +377,7 @@ function EmailCodeStep(props: {
         autoComplete="new-password"
         textContentType="newPassword"
         placeholder="New password (10 or more characters)"
-        placeholderTextColor="#777"
+        placeholderTextColor={colors.textMuted}
         accessibilityLabel="New password"
       />
       <Button
@@ -428,7 +429,7 @@ function CodeStep(props: {
         maxLength={6}
         autoFocus
         placeholder="••••••"
-        placeholderTextColor="#555"
+        placeholderTextColor={colors.textMuted}
         accessibilityLabel="6-digit code"
       />
       <Button label="Log in" busy={props.busy} onPress={() => code.length === 6 && props.onSubmit(code)} />
@@ -483,7 +484,7 @@ function OnboardingStep(props: {
         value={dob}
         onChangeText={setDob}
         placeholder="Date of birth (YYYY-MM-DD)"
-        placeholderTextColor="#777"
+        placeholderTextColor={colors.textMuted}
         keyboardType="numbers-and-punctuation"
         maxLength={10}
         accessibilityLabel="Date of birth"
@@ -523,25 +524,25 @@ function Choice(props: { label: string; value: boolean; onChange: (value: boolea
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   close: { alignSelf: "flex-end", padding: 16 },
-  closeText: { color: "#FFFFFF", fontSize: 20 },
+  closeText: { color: colors.text, fontSize: 20 },
   body: { paddingHorizontal: 24, gap: 14 },
-  title: { color: "#FFFFFF", fontSize: 26, fontWeight: "700" },
-  hint: { color: "#B3B3B3", fontSize: 14, lineHeight: 20 },
-  input: { backgroundColor: "#1A1A1A", color: "#FFFFFF", borderRadius: 10, paddingHorizontal: 14, height: 52, fontSize: 16 },
+  title: { color: colors.text, fontSize: 26, fontWeight: "700" },
+  hint: { color: colors.textMuted, fontSize: 14, lineHeight: 20 },
+  input: { backgroundColor: colors.surface, color: colors.text, borderRadius: 10, paddingHorizontal: 14, height: 52, fontSize: 16 },
   phoneRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  prefix: { color: "#FFFFFF", fontSize: 16 },
+  prefix: { color: colors.text, fontSize: 16 },
   phoneInput: { flex: 1 },
   codeInput: { fontSize: 24, letterSpacing: 8, textAlign: "center" },
-  button: { backgroundColor: "#FFFFFF", borderRadius: 10, height: 52, alignItems: "center", justifyContent: "center" },
-  buttonSecondary: { backgroundColor: "#CCCCCC" },
-  buttonText: { color: "#000000", fontSize: 16, fontWeight: "700" },
+  button: { backgroundColor: colors.accent, borderRadius: 10, height: 52, alignItems: "center", justifyContent: "center" },
+  buttonSecondary: { backgroundColor: colors.surfaceHigh },
+  buttonText: { color: colors.onAccent, fontSize: 16, fontWeight: "700" },
   disabled: { opacity: 0.5 },
-  link: { color: "#FFFFFF", textAlign: "center", paddingVertical: 8, textDecorationLine: "underline" },
-  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1A1A1A", borderRadius: 10, padding: 16 },
-  rowText: { color: "#FFFFFF", fontSize: 15, flex: 1 },
-  rowAction: { color: "#FF6B6B", fontSize: 14 },
+  link: { color: colors.text, textAlign: "center", paddingVertical: 8, textDecorationLine: "underline" },
+  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: colors.surface, borderRadius: 10, padding: 16 },
+  rowText: { color: colors.text, fontSize: 15, flex: 1 },
+  rowAction: { color: colors.danger, fontSize: 14 },
   choice: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  error: { color: "#FF6B6B", fontSize: 14 },
+  error: { color: colors.danger, fontSize: 14 },
 });

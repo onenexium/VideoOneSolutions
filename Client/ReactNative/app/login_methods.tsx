@@ -13,6 +13,7 @@ import {
 } from "@/services/accountService";
 import { ApiError } from "@/services/api";
 import { isNewPasswordOk, normalizeEmail, normalizePhone, requestEmailCode } from "@/services/authService";
+import { colors } from "@/constants/theme";
 
 const LABEL: Record<LoginMethod, string> = { phone: "Phone number", email: "Email", google: "Google", apple: "Apple" };
 
@@ -138,7 +139,7 @@ export default function LoginMethodsScreen() {
             <Text style={styles.note}>
               {viewer.phone ? "We send a code to your current number and one to the new one." : "We send a code to this number."} Your other devices are signed out when it changes.
             </Text>
-            <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="Mobile number" placeholderTextColor="#777" accessibilityLabel="New mobile number" />
+            <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="Mobile number" placeholderTextColor={colors.textMuted} accessibilityLabel="New mobile number" />
             <Button
               label="Send codes"
               busy={busy}
@@ -184,8 +185,8 @@ export default function LoginMethodsScreen() {
         {mode.name === "email" && (
           <>
             <Text style={styles.section}>Add email login</Text>
-            <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" placeholder="Email" placeholderTextColor="#777" accessibilityLabel="Email" />
-            <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry placeholder="Password (10 or more characters)" placeholderTextColor="#777" accessibilityLabel="Password" />
+            <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" placeholder="Email" placeholderTextColor={colors.textMuted} accessibilityLabel="Email" />
+            <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry placeholder="Password (10 or more characters)" placeholderTextColor={colors.textMuted} accessibilityLabel="Password" />
             <Button
               label="Send code"
               busy={busy}
@@ -257,25 +258,25 @@ function Button(props: { label: string; busy: boolean; onPress: () => void }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   center: { alignItems: "center", justifyContent: "center" },
   flex: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 48, gap: 12 },
-  back: { color: "#FFFFFF", fontSize: 32 },
-  title: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", flex: 1 },
+  back: { color: colors.text, fontSize: 32 },
+  title: { color: colors.text, fontSize: 18, fontWeight: "700", flex: 1 },
   body: { padding: 16, gap: 12 },
-  section: { color: "#FFFFFF", fontSize: 18, fontWeight: "700" },
-  text: { color: "#FFFFFF", fontSize: 15 },
-  note: { color: "#B3B3B3", fontSize: 13 },
-  ok: { color: "#5BD98A", fontSize: 14 },
+  section: { color: colors.text, fontSize: 18, fontWeight: "700" },
+  text: { color: colors.text, fontSize: 15 },
+  note: { color: colors.textMuted, fontSize: 13 },
+  ok: { color: colors.success, fontSize: 14 },
   row: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 6 },
-  input: { backgroundColor: "#1A1A1A", color: "#FFFFFF", borderRadius: 10, paddingHorizontal: 14, height: 48, fontSize: 15 },
+  input: { backgroundColor: colors.surface, color: colors.text, borderRadius: 10, paddingHorizontal: 14, height: 48, fontSize: 15 },
   code: { fontSize: 22, letterSpacing: 6, textAlign: "center" },
-  primary: { backgroundColor: "#FFFFFF", borderRadius: 10, height: 50, alignItems: "center", justifyContent: "center" },
-  primaryText: { color: "#000000", fontSize: 16, fontWeight: "700" },
-  secondary: { backgroundColor: "#2A2A2A", borderRadius: 10, height: 46, alignItems: "center", justifyContent: "center" },
-  secondaryText: { color: "#FFFFFF", fontSize: 14, fontWeight: "600" },
+  primary: { backgroundColor: colors.accent, borderRadius: 10, height: 50, alignItems: "center", justifyContent: "center" },
+  primaryText: { color: colors.onAccent, fontSize: 16, fontWeight: "700" },
+  secondary: { backgroundColor: colors.surfaceHigh, borderRadius: 10, height: 46, alignItems: "center", justifyContent: "center" },
+  secondaryText: { color: colors.text, fontSize: 14, fontWeight: "600" },
   disabled: { opacity: 0.5 },
-  danger: { color: "#FF6B6B", fontSize: 14 },
-  error: { color: "#FF6B6B", fontSize: 14 },
+  danger: { color: colors.danger, fontSize: 14 },
+  error: { color: colors.danger, fontSize: 14 },
 });

@@ -10,6 +10,8 @@ import {
   refusalOf,
   type CheckInState,
 } from "@/services/walletService";
+import Gradient from "@/components/ui/Gradient";
+import { colors } from "@/constants/theme";
 
 /** The daily check-in: a ladder of coins, claimed with a tap (never automatically). */
 export default function RewardsScreen() {
@@ -96,7 +98,7 @@ export default function RewardsScreen() {
           </TouchableOpacity>
         </View>
       ) : !state ? (
-        <ActivityIndicator style={styles.center} color="#FFFFFF" />
+        <ActivityIndicator style={styles.center} color={colors.text} />
       ) : (
         <View style={styles.body}>
           <Text style={styles.heading}>Daily check-in</Text>
@@ -124,8 +126,9 @@ export default function RewardsScreen() {
             accessibilityRole="button"
             onPress={claim}
           >
+            {state.canClaim && <Gradient borderRadius={10} />}
             {busy ? (
-              <ActivityIndicator color="#000" />
+              <ActivityIndicator color={colors.onAccent} />
             ) : (
               <Text style={styles.buttonText}>
                 {state.claimedToday ? "Claimed today" : state.canClaim ? `Claim ${state.nextCoins} coins` : "Not available today"}
@@ -140,23 +143,23 @@ export default function RewardsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 48, gap: 12 },
-  back: { color: "#FFFFFF", fontSize: 32 },
-  title: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", flex: 1 },
+  back: { color: colors.text, fontSize: 32 },
+  title: { color: colors.text, fontSize: 18, fontWeight: "700", flex: 1 },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
   body: { padding: 16, gap: 16 },
-  heading: { color: "#FFFFFF", fontSize: 20, fontWeight: "700" },
+  heading: { color: colors.text, fontSize: 20, fontWeight: "700" },
   ladder: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  tile: { width: 72, paddingVertical: 12, borderRadius: 10, backgroundColor: "#1A1A1A", alignItems: "center", gap: 4 },
+  tile: { width: 72, paddingVertical: 12, borderRadius: 10, backgroundColor: colors.surface, alignItems: "center", gap: 4 },
   tileDone: { opacity: 0.5 },
-  tileToday: { backgroundColor: "#2A3A2F", borderWidth: 1, borderColor: "#5BD98A" },
-  tileDay: { color: "#B3B3B3", fontSize: 11 },
-  tileCoins: { color: "#FFFFFF", fontSize: 20, fontWeight: "700" },
-  button: { backgroundColor: "#FFFFFF", borderRadius: 10, height: 50, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
-  buttonText: { color: "#000000", fontSize: 16, fontWeight: "700" },
+  tileToday: { backgroundColor: colors.surfaceHigh, borderWidth: 1, borderColor: colors.gold },
+  tileDay: { color: colors.textMuted, fontSize: 11 },
+  tileCoins: { color: colors.text, fontSize: 20, fontWeight: "700" },
+  button: { backgroundColor: colors.accent, borderRadius: 10, height: 50, alignItems: "center", justifyContent: "center", paddingHorizontal: 24, overflow: "hidden" },
+  buttonText: { color: colors.onAccent, fontSize: 16, fontWeight: "700" },
   disabled: { opacity: 0.5 },
-  message: { color: "#FFFFFF", fontSize: 14, textAlign: "center" },
-  retry: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: "#333333" },
-  retryText: { color: "#FFFFFF" },
+  message: { color: colors.text, fontSize: 14, textAlign: "center" },
+  retry: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: colors.surfaceHigh },
+  retryText: { color: colors.text },
 });

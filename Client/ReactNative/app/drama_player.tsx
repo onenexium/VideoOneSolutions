@@ -44,6 +44,7 @@ import {
   createCastExitGuard,
   type CastExitGuard,
 } from "../utils/castExitGuard.mjs";
+import { colors } from "@/constants/theme";
 
 // Get screen dimensions, swap width and height in landscape mode
 const getScreenDimensions = () => {
@@ -481,7 +482,7 @@ export default function DramaPlayer() {
       StyleSheet.create({
         container: {
           flex: 1,
-          backgroundColor: "#000",
+          backgroundColor: colors.background,
           position: "relative",
         },
         titleBar: {
@@ -499,10 +500,10 @@ export default function DramaPlayer() {
         backIcon: {
           width: 20,
           height: 20,
-          tintColor: "#fff",
+          tintColor: colors.text,
         },
         titleText: {
-          color: "#fff",
+          color: colors.text,
           fontSize: 18,
           fontWeight: "bold",
           flex: 1, // Take remaining space
@@ -511,27 +512,27 @@ export default function DramaPlayer() {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "#000",
+          backgroundColor: colors.background,
         },
         loadingText: {
           marginTop: 12,
-          color: "#fff",
+          color: colors.text,
           fontSize: 16,
         },
         errorText: {
-          color: "#ff4444",
+          color: colors.danger,
           fontSize: 16,
           textAlign: "center",
           marginBottom: 20,
         },
         retryButton: {
-          backgroundColor: "#1664FF",
+          backgroundColor: colors.accent,
           paddingHorizontal: 20,
           paddingVertical: 10,
           borderRadius: 8,
         },
         retryButtonText: {
-          color: "#fff",
+          color: colors.text,
           fontSize: 16,
           fontWeight: "bold",
         },
@@ -611,7 +612,7 @@ export default function DramaPlayer() {
           { paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
-        <ActivityIndicator size="large" color="#1664FF" />
+        <ActivityIndicator size="large" color={colors.accent} />
         <Text style={styles.loadingText}>Loading episodes...</Text>
       </View>
     );
@@ -738,13 +739,13 @@ const autoToastStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#262626",
+    backgroundColor: colors.surfaceHigh,
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  rating: { position: "absolute", left: 16, zIndex: 550, backgroundColor: "rgba(0,0,0,0.7)", borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: "#FFFFFF" },
-  ratingText: { color: "#FFFFFF", fontSize: 13, fontWeight: "700" },
-  text: { color: "#FFFFFF", fontSize: 14, flex: 1 },
-  undo: { color: "#7DB2FF", fontSize: 14, fontWeight: "700", paddingLeft: 16 },
+  rating: { position: "absolute", left: 16, zIndex: 550, backgroundColor: "rgba(0,0,0,0.7)", borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: colors.accent },
+  ratingText: { color: colors.text, fontSize: 13, fontWeight: "700" },
+  text: { color: colors.text, fontSize: 14, flex: 1 },
+  undo: { color: colors.accent, fontSize: 14, fontWeight: "700", paddingLeft: 16 },
 });

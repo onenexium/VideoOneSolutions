@@ -38,6 +38,7 @@ import {
   type AirPlaySessionSnapshot,
   type AirPlaySessionState,
 } from "../cast/AirPlayRelay";
+import { colors } from "@/constants/theme";
 
 // Get screen dimensions, swap width and height in landscape mode
 const getScreenDimensions = () => {
@@ -1077,18 +1078,18 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       StyleSheet.create({
         container: {
           flex: 1,
-          backgroundColor: "#000",
+          backgroundColor: colors.background,
           flexDirection: "column",
         },
         errorContainer: {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "#000",
+          backgroundColor: colors.background,
           paddingHorizontal: 32,
         },
         errorText: {
-          color: "#fff",
+          color: colors.text,
           fontSize: 16,
           textAlign: "center",
           marginBottom: 32,
@@ -1106,7 +1107,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           borderColor: "rgba(255, 255, 255, 0.2)",
         },
         retryButtonText: {
-          color: "#fff",
+          color: colors.text,
           fontSize: 16,
           fontWeight: "500",
           marginLeft: 8,

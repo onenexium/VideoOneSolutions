@@ -5,6 +5,7 @@ import * as WebBrowser from "expo-web-browser";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getLanguage } from "@/services/i18n";
 import { getHelpArticles, getLegalDocument, type HelpArticleSummary, type LegalKind } from "@/services/supportService";
+import { colors } from "@/constants/theme";
 
 const TOPICS: Record<string, string> = {
   account: "Account and login",
@@ -59,11 +60,11 @@ export default function HelpScreen() {
         <Text style={styles.title}>Help</Text>
       </View>
       <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 32 }]} keyboardShouldPersistTaps="handled">
-        <TextInput style={styles.input} value={q} onChangeText={setQ} placeholder="Search help" placeholderTextColor="#777" accessibilityLabel="Search help" />
+        <TextInput style={styles.input} value={q} onChangeText={setQ} placeholder="Search help" placeholderTextColor={colors.textMuted} accessibilityLabel="Search help" />
         {error ? (
           <Text style={styles.note}>{error}</Text>
         ) : articles === null ? (
-          <ActivityIndicator color="#FFFFFF" />
+          <ActivityIndicator color={colors.text} />
         ) : articles.length === 0 ? (
           <Text style={styles.note}>No answers found. Contact us below.</Text>
         ) : (
@@ -111,19 +112,19 @@ export default function HelpScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 48, gap: 12 },
-  back: { color: "#FFFFFF", fontSize: 32 },
-  title: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", flex: 1 },
+  back: { color: colors.text, fontSize: 32 },
+  title: { color: colors.text, fontSize: 18, fontWeight: "700", flex: 1 },
   body: { padding: 16, gap: 10 },
-  input: { backgroundColor: "#1A1A1A", color: "#FFFFFF", borderRadius: 10, paddingHorizontal: 14, height: 44, fontSize: 15 },
+  input: { backgroundColor: colors.surface, color: colors.text, borderRadius: 10, paddingHorizontal: 14, height: 44, fontSize: 15 },
   group: { gap: 6 },
-  section: { color: "#FFFFFF", fontSize: 17, fontWeight: "700", marginTop: 12 },
-  row: { backgroundColor: "#1A1A1A", borderRadius: 10, padding: 14 },
-  text: { color: "#FFFFFF", fontSize: 15 },
-  note: { color: "#B3B3B3", fontSize: 13 },
-  primary: { backgroundColor: "#FFFFFF", borderRadius: 10, height: 48, alignItems: "center", justifyContent: "center" },
-  primaryText: { color: "#000000", fontSize: 15, fontWeight: "700" },
-  secondary: { backgroundColor: "#2A2A2A", borderRadius: 10, height: 46, alignItems: "center", justifyContent: "center" },
-  secondaryText: { color: "#FFFFFF", fontSize: 14, fontWeight: "600" },
+  section: { color: colors.text, fontSize: 17, fontWeight: "700", marginTop: 12 },
+  row: { backgroundColor: colors.surface, borderRadius: 10, padding: 14 },
+  text: { color: colors.text, fontSize: 15 },
+  note: { color: colors.textMuted, fontSize: 13 },
+  primary: { backgroundColor: colors.accent, borderRadius: 10, height: 48, alignItems: "center", justifyContent: "center" },
+  primaryText: { color: colors.onAccent, fontSize: 15, fontWeight: "700" },
+  secondary: { backgroundColor: colors.surfaceHigh, borderRadius: 10, height: 46, alignItems: "center", justifyContent: "center" },
+  secondaryText: { color: colors.text, fontSize: 14, fontWeight: "600" },
 });

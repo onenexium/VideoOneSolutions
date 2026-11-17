@@ -21,6 +21,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { colors } from "@/constants/theme";
 
 interface CastStatusBarProps {
   /** Friendly name of the cast/AirPlay target device */
@@ -105,16 +106,16 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#4ADE80', // green-400
+    backgroundColor: colors.success, // green-400
   },
   label: {
     flex: 1,
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 12,
     fontWeight: '500',
   },
   stopButton: {
-    color: '#FDA4AF', // rose-300 — visible but not alarming
+    color: colors.danger, // rose-300 — visible but not alarming
     fontSize: 12,
     fontWeight: '600',
   },

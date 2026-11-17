@@ -6,6 +6,7 @@ import { router, useSegments } from "expo-router";
 import { useViewer } from "@/hooks/useViewer";
 import { dismissUpdate, loadAppConfig } from "@/services/appConfigService";
 import { useT } from "@/services/i18n";
+import { colors } from "@/constants/theme";
 
 /** Where this build's store page is. iOS needs EXPO_PUBLIC_STORE_URL_IOS (the App Store id is not known yet). */
 function storeUrl(): string | null {
@@ -88,15 +89,15 @@ const AppGate: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  screen: { ...StyleSheet.absoluteFillObject, zIndex: 10000, backgroundColor: "#000000", alignItems: "center", justifyContent: "center", padding: 32, gap: 16 },
-  title: { color: "#FFFFFF", fontSize: 24, fontWeight: "700", textAlign: "center" },
-  body: { color: "#B3B3B3", fontSize: 15, textAlign: "center", lineHeight: 22 },
-  button: { backgroundColor: "#FFFFFF", borderRadius: 10, height: 50, paddingHorizontal: 40, alignItems: "center", justifyContent: "center" },
-  buttonText: { color: "#000000", fontSize: 16, fontWeight: "700" },
-  banner: { position: "absolute", top: 48, left: 16, right: 16, zIndex: 9000, flexDirection: "row", alignItems: "center", gap: 16, backgroundColor: "#262626", borderRadius: 10, paddingHorizontal: 16, paddingVertical: 10 },
-  bannerText: { color: "#FFFFFF", fontSize: 13, flex: 1 },
-  bannerAction: { color: "#7DB2FF", fontSize: 13, fontWeight: "700" },
-  bannerDismiss: { color: "#B3B3B3", fontSize: 13 },
+  screen: { ...StyleSheet.absoluteFillObject, zIndex: 10000, backgroundColor: colors.background, alignItems: "center", justifyContent: "center", padding: 32, gap: 16 },
+  title: { color: colors.text, fontSize: 24, fontWeight: "700", textAlign: "center" },
+  body: { color: colors.textMuted, fontSize: 15, textAlign: "center", lineHeight: 22 },
+  button: { backgroundColor: colors.accent, borderRadius: 10, height: 50, paddingHorizontal: 40, alignItems: "center", justifyContent: "center" },
+  buttonText: { color: colors.onAccent, fontSize: 16, fontWeight: "700" },
+  banner: { position: "absolute", top: 48, left: 16, right: 16, zIndex: 9000, flexDirection: "row", alignItems: "center", gap: 16, backgroundColor: colors.surfaceHigh, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 10 },
+  bannerText: { color: colors.text, fontSize: 13, flex: 1 },
+  bannerAction: { color: colors.accent, fontSize: 13, fontWeight: "700" },
+  bannerDismiss: { color: colors.textMuted, fontSize: 13 },
 });
 
 export default AppGate;

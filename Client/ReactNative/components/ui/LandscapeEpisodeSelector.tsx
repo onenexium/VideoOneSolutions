@@ -3,6 +3,7 @@ import React, { useState, useCallback } from "react";
 import { Text, TouchableOpacity, StyleSheet } from "react-native";
 import { DramaEpisode } from "../../types/drama";
 import EpisodeSelectorModal from "../modals/EpisodeSelectorModal";
+import { colors } from "@/constants/theme";
 
 interface LandscapeEpisodeSelectorProps {
   episodes: DramaEpisode[];
@@ -93,10 +94,10 @@ const styles = StyleSheet.create({
   landscapeEpisodeIcon: {
     width: 20,
     height: 20,
-    tintColor: "#FFFFFF",
+    tintColor: colors.text,
   },
   landscapeEpisodeText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 15,
     fontWeight: "600",
     lineHeight: 24,

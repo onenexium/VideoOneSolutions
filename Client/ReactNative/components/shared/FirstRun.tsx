@@ -14,6 +14,7 @@ import { ApiError } from "@/services/api";
 import { loadAppConfig, type AppConfig } from "@/services/appConfigService";
 import { setLanguage, useT } from "@/services/i18n";
 import { completeFirstRun, defaultAppLanguage, getFirstRun, subscribeFirstRun } from "@/services/firstRun";
+import { colors } from "@/constants/theme";
 
 const NAMES: Record<string, string> = { hi: "हिन्दी", en: "English", ta: "தமிழ்" };
 const nameOf = (code: string) => NAMES[code] ?? code;
@@ -148,7 +149,7 @@ const FirstRun: React.FC = () => {
       {needed.mode === "full" ? (
         <>
           <TouchableOpacity style={[styles.primary, busy && styles.disabled]} disabled={busy} onPress={() => submit(true)} accessibilityRole="button">
-            {busy ? <ActivityIndicator color="#000" /> : <Text style={styles.primaryText}>{t("firstRun.adult")}</Text>}
+            {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text style={styles.primaryText}>{t("firstRun.adult")}</Text>}
           </TouchableOpacity>
           <TouchableOpacity disabled={busy} onPress={() => submit(false)} accessibilityRole="button">
             <Text style={styles.link}>{t("firstRun.minor")}</Text>
@@ -156,7 +157,7 @@ const FirstRun: React.FC = () => {
         </>
       ) : (
         <TouchableOpacity style={[styles.primary, busy && styles.disabled]} disabled={busy} onPress={() => submit(undefined)} accessibilityRole="button">
-          {busy ? <ActivityIndicator color="#000" /> : <Text style={styles.primaryText}>{t("firstRun.accept")}</Text>}
+          {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text style={styles.primaryText}>{t("firstRun.accept")}</Text>}
         </TouchableOpacity>
       )}
     </View>
@@ -164,22 +165,22 @@ const FirstRun: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  screen: { ...StyleSheet.absoluteFillObject, zIndex: 9500, backgroundColor: "#000000", paddingHorizontal: 24, justifyContent: "center", gap: 12 },
+  screen: { ...StyleSheet.absoluteFillObject, zIndex: 9500, backgroundColor: colors.background, paddingHorizontal: 24, justifyContent: "center", gap: 12 },
   scroll: { gap: 12, paddingVertical: 8 },
-  title: { color: "#FFFFFF", fontSize: 26, fontWeight: "700" },
-  label: { color: "#B3B3B3", fontSize: 13, marginTop: 8 },
-  body: { color: "#DDDDDD", fontSize: 14, lineHeight: 20 },
-  text: { color: "#FFFFFF", fontSize: 15, flex: 1 },
+  title: { color: colors.text, fontSize: 26, fontWeight: "700" },
+  label: { color: colors.textMuted, fontSize: 13, marginTop: 8 },
+  body: { color: colors.textMuted, fontSize: 14, lineHeight: 20 },
+  text: { color: colors.text, fontSize: 15, flex: 1 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: { backgroundColor: "#1A1A1A", borderRadius: 16, paddingHorizontal: 16, paddingVertical: 10 },
-  chipOn: { backgroundColor: "#3A3A3A", borderWidth: 1, borderColor: "#FFFFFF" },
-  chipText: { color: "#FFFFFF", fontSize: 14 },
+  chip: { backgroundColor: colors.surface, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 10 },
+  chipOn: { backgroundColor: colors.surfaceHigh, borderWidth: 1, borderColor: colors.accent },
+  chipText: { color: colors.text, fontSize: 14 },
   switchRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  primary: { backgroundColor: "#FFFFFF", borderRadius: 10, height: 52, alignItems: "center", justifyContent: "center" },
-  primaryText: { color: "#000000", fontSize: 16, fontWeight: "700" },
+  primary: { backgroundColor: colors.accent, borderRadius: 10, height: 52, alignItems: "center", justifyContent: "center" },
+  primaryText: { color: colors.onAccent, fontSize: 16, fontWeight: "700" },
   disabled: { opacity: 0.5 },
-  link: { color: "#FFFFFF", textAlign: "center", paddingVertical: 8, textDecorationLine: "underline" },
-  error: { color: "#FF6B6B", fontSize: 14 },
+  link: { color: colors.text, textAlign: "center", paddingVertical: 8, textDecorationLine: "underline" },
+  error: { color: colors.danger, fontSize: 14 },
 });
 
 export default FirstRun;

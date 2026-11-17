@@ -1,6 +1,7 @@
 import SvgIcon from "@/components/ui/SvgIcon";
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { colors } from "@/constants/theme";
 
 interface EpisodeSelectorProps {
   episodes: any[];
@@ -62,13 +63,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   episodeTitle: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "500",
     opacity: 0.7,
   },
   episodeCount: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "500",
     opacity: 0.7,

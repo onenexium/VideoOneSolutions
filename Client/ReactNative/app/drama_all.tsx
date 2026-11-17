@@ -6,6 +6,7 @@ import CardGrid from "@/components/drama/CardGrid";
 import { usePagedCards } from "@/hooks/usePagedCards";
 import { DramaService } from "@/services/dramaService";
 import { openSeries } from "@/utils/openSeries";
+import { colors } from "@/constants/theme";
 
 /**
  * "See all": every series of one home rail (`rail`), or every series there is (Browse, no `rail`),
@@ -46,8 +47,8 @@ export default function DramaAllScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 48 },
-  back: { color: "#FFFFFF", fontSize: 32, marginRight: 12 },
-  title: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", flex: 1 },
+  back: { color: colors.text, fontSize: 32, marginRight: 12 },
+  title: { color: colors.text, fontSize: 18, fontWeight: "700", flex: 1 },
 });

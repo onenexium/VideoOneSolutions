@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useOffline } from "@/hooks/useOffline";
 import { loadAppConfig } from "@/services/appConfigService";
 import { useT } from "@/services/i18n";
+import { colors } from "@/constants/theme";
 
 /** A thin bar while the API cannot be reached; Retry asks again (any answer clears it). */
 const OfflineBanner: React.FC = () => {
@@ -23,8 +24,8 @@ const OfflineBanner: React.FC = () => {
 
 const styles = StyleSheet.create({
   bar: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 9400, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 16, backgroundColor: "#7A2E2E", paddingBottom: 6 },
-  text: { color: "#FFFFFF", fontSize: 13 },
-  retry: { color: "#FFFFFF", fontSize: 13, fontWeight: "700", textDecorationLine: "underline" },
+  text: { color: colors.text, fontSize: 13 },
+  retry: { color: colors.text, fontSize: 13, fontWeight: "700", textDecorationLine: "underline" },
 });
 
 export default OfflineBanner;

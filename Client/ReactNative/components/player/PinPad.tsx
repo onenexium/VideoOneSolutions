@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TextInput, View } from "react-native";
 import { ApiError } from "@/services/api";
 import { verifyPin } from "@/services/pinService";
+import { colors } from "@/constants/theme";
 
 /** What to say for a PIN that was refused; the API gives the tries left, or until when it is locked. */
 export function pinMessage(error: unknown): string {
@@ -57,10 +58,10 @@ const PinPad: React.FC<{ onVerified: () => void }> = ({ onVerified }) => {
         maxLength={4}
         autoFocus
         placeholder="••••"
-        placeholderTextColor="#555"
+        placeholderTextColor={colors.textMuted}
         accessibilityLabel="4-digit PIN"
       />
-      {busy && <ActivityIndicator color="#FFFFFF" />}
+      {busy && <ActivityIndicator color={colors.text} />}
       {message && <Text style={styles.error}>{message}</Text>}
     </View>
   );
@@ -68,10 +69,10 @@ const PinPad: React.FC<{ onVerified: () => void }> = ({ onVerified }) => {
 
 const styles = StyleSheet.create({
   container: { alignItems: "center", gap: 12, padding: 24 },
-  title: { color: "#FFFFFF", fontSize: 20, fontWeight: "700" },
-  hint: { color: "#B3B3B3", fontSize: 14 },
-  input: { backgroundColor: "#1A1A1A", color: "#FFFFFF", borderRadius: 10, width: 160, height: 56, fontSize: 28, letterSpacing: 12, textAlign: "center" },
-  error: { color: "#FF6B6B", fontSize: 14, textAlign: "center" },
+  title: { color: colors.text, fontSize: 20, fontWeight: "700" },
+  hint: { color: colors.textMuted, fontSize: 14 },
+  input: { backgroundColor: colors.surface, color: colors.text, borderRadius: 10, width: 160, height: 56, fontSize: 28, letterSpacing: 12, textAlign: "center" },
+  error: { color: colors.danger, fontSize: 14, textAlign: "center" },
 });
 
 export default PinPad;

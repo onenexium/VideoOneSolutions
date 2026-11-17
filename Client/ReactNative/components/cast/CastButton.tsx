@@ -21,6 +21,7 @@ import AirPlayRoutePickerView from './AirPlayRoutePickerView';
 import SvgIcon from '../ui/SvgIcon';
 import { AirPlayRelay } from './AirPlayRelay';
 import { useCast, type CastController } from '../../hooks/useCast';
+import { colors } from "@/constants/theme";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -49,8 +50,8 @@ const IOS_MIN_TOUCH_SIZE = 44;
 
 const IOSCastButton: React.FC<CastButtonProps> = ({
   size = 24,
-  color = '#FFFFFF',
-  activeColor = '#5B8CFF',
+  color = colors.text,
+  activeColor = colors.accent,
   style,
 }) => {
   const touchSize = Math.max(size, IOS_MIN_TOUCH_SIZE);
@@ -94,8 +95,8 @@ const AndroidCastButton: React.FC<AndroidCastButtonProps> = ({
   title,
   coverUrl,
   size = 24,
-  color = '#FFFFFF',
-  activeColor = '#5B8CFF',
+  color = colors.text,
+  activeColor = colors.accent,
   style,
   onCastStart,
   onCastStop,

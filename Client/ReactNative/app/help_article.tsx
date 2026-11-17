@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getLanguage } from "@/services/i18n";
 import { getHelpArticle, type HelpArticle } from "@/services/supportService";
+import { colors } from "@/constants/theme";
 
 /** Markdown kept to plain text: articles are short paragraphs; bold and links read fine without marks. */
 const plain = (markdown: string) => markdown.replace(/\*\*(.+?)\*\*/g, "$1").replace(/\[(.+?)\]\((.+?)\)/g, "$1 ($2)");
@@ -30,7 +31,7 @@ export default function HelpArticleScreen() {
       {error ? (
         <Text style={[styles.text, styles.pad]}>{error}</Text>
       ) : !article ? (
-        <ActivityIndicator color="#FFFFFF" />
+        <ActivityIndicator color={colors.text} />
       ) : (
         <ScrollView contentContainerStyle={[styles.pad, { paddingBottom: insets.bottom + 32 }]}>
           <Text style={styles.title} accessibilityRole="header">
@@ -50,10 +51,10 @@ export default function HelpArticleScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 48 },
-  back: { color: "#FFFFFF", fontSize: 32 },
+  back: { color: colors.text, fontSize: 32 },
   pad: { padding: 16, gap: 14 },
-  title: { color: "#FFFFFF", fontSize: 22, fontWeight: "700" },
-  text: { color: "#DDDDDD", fontSize: 15, lineHeight: 22 },
+  title: { color: colors.text, fontSize: 22, fontWeight: "700" },
+  text: { color: colors.textMuted, fontSize: 15, lineHeight: 22 },
 });

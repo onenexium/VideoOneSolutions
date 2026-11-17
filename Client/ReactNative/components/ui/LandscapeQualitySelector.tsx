@@ -9,6 +9,7 @@ import {
   Animated,
 } from "react-native";
 import { PlaybackSource } from "../../types/drama";
+import { colors } from "@/constants/theme";
 
 interface LandscapeQualitySelectorProps {
   sources: PlaybackSource[];
@@ -151,10 +152,10 @@ const styles = StyleSheet.create({
   landscapeQualityIcon: {
     width: 20,
     height: 20,
-    tintColor: "#FFFFFF",
+    tintColor: colors.text,
   },
   landscapeQualityText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 15,
     fontWeight: "600",
     lineHeight: 24,
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   modalContent: {
-    backgroundColor: "#000",
+    backgroundColor: colors.background,
     borderRadius: 8,
     width: "90%",
     maxWidth: 375,
@@ -205,13 +206,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   qualityOptionText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 15,
     fontWeight: "500",
     textAlign: "center",
   },
   qualityOptionTextActive: {
-    color: "#fff",
+    color: colors.text,
   },
   qualityOptionSubtext: {
     color: "rgba(255, 255, 255, 0.6)",

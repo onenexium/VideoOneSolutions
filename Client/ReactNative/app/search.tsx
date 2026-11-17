@@ -15,6 +15,7 @@ import DramaCover from "@/components/drama/DramaCover";
 import { usePagedCards } from "@/hooks/usePagedCards";
 import { getSearchSuggestions, searchSeries, type SearchSuggestions } from "@/services/libraryService";
 import { openSeries } from "@/utils/openSeries";
+import { colors } from "@/constants/theme";
 
 const DEBOUNCE_MS = 350;
 
@@ -49,7 +50,7 @@ export default function SearchScreen() {
           value={text}
           onChangeText={setText}
           placeholder="Search series, cast or genre"
-          placeholderTextColor="#777"
+          placeholderTextColor={colors.textMuted}
           autoFocus
           returnKeyType="search"
           autoCorrect={false}
@@ -76,7 +77,7 @@ export default function SearchScreen() {
       ) : (
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
           {suggestions === null ? (
-            <ActivityIndicator style={styles.spinner} color="#FFFFFF" />
+            <ActivityIndicator style={styles.spinner} color={colors.text} />
           ) : (
             <>
               {suggestions.tropes.length > 0 && (
@@ -113,15 +114,15 @@ export default function SearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 56, gap: 8 },
-  back: { color: "#FFFFFF", fontSize: 32 },
-  input: { flex: 1, backgroundColor: "#1A1A1A", color: "#FFFFFF", borderRadius: 10, paddingHorizontal: 14, height: 40, fontSize: 15 },
-  clear: { color: "#B3B3B3", fontSize: 18, paddingHorizontal: 6 },
+  back: { color: colors.text, fontSize: 32 },
+  input: { flex: 1, backgroundColor: colors.surface, color: colors.text, borderRadius: 10, paddingHorizontal: 14, height: 40, fontSize: 15 },
+  clear: { color: colors.textMuted, fontSize: 18, paddingHorizontal: 6 },
   spinner: { marginTop: 40 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16, paddingVertical: 12 },
-  chip: { backgroundColor: "#1A1A1A", borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8 },
-  chipText: { color: "#FFFFFF", fontSize: 13 },
-  section: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", paddingHorizontal: 16, marginVertical: 12 },
+  chip: { backgroundColor: colors.surface, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8 },
+  chipText: { color: colors.text, fontSize: 13 },
+  section: { color: colors.text, fontSize: 18, fontWeight: "700", paddingHorizontal: 16, marginVertical: 12 },
   suggested: { flexDirection: "row", flexWrap: "wrap", gap: 12, paddingHorizontal: 16 },
 });

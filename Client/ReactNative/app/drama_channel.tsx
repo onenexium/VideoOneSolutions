@@ -27,14 +27,30 @@ import { useSeekGestureLock } from "@/hooks/useSeekGestureLock";
 import { DramaService } from "@/services/dramaService";
 import { USE_MOCK_API } from "@/services/api";
 import AccountButton from "@/components/shared/AccountButton";
+import MyListView from "@/components/library/MyListView";
+import ProfileView from "@/components/profile/ProfileView";
+import type { IconName } from "@/components/ui/SvgIcon";
 import { openSeries } from "@/utils/openSeries";
 import ContinueWatchingRail from "@/components/drama/ContinueWatchingRail";
 import { trackPreviewWatched } from "@/services/eventsService";
+import { colors } from "@/constants/theme";
 
 const { height } = Dimensions.get("window");
 const { width: screenWidth } = Dimensions.get("window");
 
 const TAB_BAR_HEIGHT = 80;
+
+/** The bottom bar, left to right; Profile in the corner. The mock catalogue has no accounts or lists. */
+const TABS: { label: string; icon: IconName; selected: IconName }[] = [
+  { label: "Home", icon: "home", selected: "home-selected" },
+  { label: "For you", icon: "feed", selected: "feed-selected" },
+  ...(USE_MOCK_API
+    ? []
+    : [
+        { label: "My List", icon: "bookmark" as const, selected: "bookmark-selected" as const },
+        { label: "Profile", icon: "user" as const, selected: "user-selected" as const },
+      ]),
+];
 const FEED_PAGE_SIZE = 20;
 
 const DramaChannel = () => {
@@ -303,11 +319,6 @@ const DramaChannel = () => {
     ]
   );
 
-  const handleBackPress = () => {
-    // Return to home page
-    router.push("/");
-  };
-
   const handleDramaPress = openSeries; // a card opens its series page
 
   // "See all": a rail's own list, or (no rail) every series. Not for the mock catalogue.
@@ -328,7 +339,7 @@ const DramaChannel = () => {
           { paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
-        <ActivityIndicator size="large" color="#1664FF" />
+        <ActivityIndicator size="large" color={colors.accent} />
         <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
@@ -352,47 +363,33 @@ const DramaChannel = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <TouchableOpacity onPress={handleBackPress} style={styles.backButton} accessibilityRole="button" accessibilityLabel="Back">
-          <SvgIcon name="chevron-left" style={styles.backIcon} />
-        </TouchableOpacity>
-        <View style={styles.headerRight}>
-          {!USE_MOCK_API && (
-            <>
+      {/* Header: search, and Log in while logged out (Home and For you; the other tabs have their own titles) */}
+      {currentTab < 2 && (
+        <View style={[styles.header, { paddingTop: insets.top }]}>
+          <View />
+          <View style={styles.headerRight}>
+            {!USE_MOCK_API && (
               <TouchableOpacity
-                style={styles.headerPill}
+                style={styles.searchButton}
                 onPress={() => router.push("/search" as any)}
                 accessibilityRole="button"
                 accessibilityLabel="Search"
               >
-                <Text style={styles.headerPillText}>Search</Text>
+                <SvgIcon name="search" style={styles.searchIcon} color={colors.text} />
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.headerPill}
-                onPress={() => router.push("/my_list" as any)}
-                accessibilityRole="button"
-                accessibilityLabel="My List"
-              >
-                <Text style={styles.headerPillText}>My List</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.headerPill}
-                onPress={() => router.push("/help" as any)}
-                accessibilityRole="button"
-                accessibilityLabel="Help"
-              >
-                <Text style={styles.headerPillText}>?</Text>
-              </TouchableOpacity>
-            </>
-          )}
-          <AccountButton />
+            )}
+            <AccountButton />
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Content Area */}
       <View style={[styles.content, { height: height }]}>
-        {currentTab === 0 ? (
+        {currentTab === 2 ? (
+          <MyListView />
+        ) : currentTab === 3 ? (
+          <ProfileView />
+        ) : currentTab === 0 ? (
           <ScrollView
             style={[styles.scrollView, { paddingTop: insets.top }]}
             showsVerticalScrollIndicator={false}
@@ -458,7 +455,7 @@ const DramaChannel = () => {
           <View style={[styles.feedContainer, { height: height }]}>
             {feedLoading ? (
               <View style={styles.feedLoadingContainer}>
-                <ActivityIndicator size="large" color="#1664FF" />
+                <ActivityIndicator size="large" color={colors.accent} />
                 <Text style={styles.feedLoadingText}>Loading feed...</Text>
               </View>
             ) : feedError ? (
@@ -535,46 +532,26 @@ const DramaChannel = () => {
         {/* Bottom Tab Bar */}
         <View style={[styles.tabBar]}>
           <View style={[styles.tabBarContent, { bottom: 0 }]}>
-            <TouchableOpacity
-              style={styles.tabButton}
-              onPress={() => handleTabChange(0)}
-              accessibilityRole="button"
-              accessibilityLabel="Home"
-              accessibilityState={{ selected: currentTab === 0 }}
-            >
-              <SvgIcon
-                name={currentTab === 0 ? "home-selected" : "home"}
-                style={styles.tabIcon}
-              />
-              <Text
-                style={[
-                  styles.tabText,
-                  currentTab === 0 && styles.activeTabText,
-                ]}
-              >
-                Home
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.tabButton}
-              onPress={() => handleTabChange(1)}
-              accessibilityRole="button"
-              accessibilityLabel="For you"
-              accessibilityState={{ selected: currentTab === 1 }}
-            >
-              <SvgIcon
-                name={currentTab === 1 ? "feed-selected" : "feed"}
-                style={styles.tabIcon}
-              />
-              <Text
-                style={[
-                  styles.tabText,
-                  currentTab === 1 && styles.activeTabText,
-                ]}
-              >
-                For you
-              </Text>
-            </TouchableOpacity>
+            {TABS.map((tab, index) => {
+              const on = currentTab === index;
+              return (
+                <TouchableOpacity
+                  key={tab.label}
+                  style={styles.tabButton}
+                  onPress={() => handleTabChange(index)}
+                  accessibilityRole="button"
+                  accessibilityLabel={tab.label}
+                  accessibilityState={{ selected: on }}
+                >
+                  <SvgIcon
+                    name={on ? tab.selected : tab.icon}
+                    style={styles.tabIcon}
+                    color={on ? colors.accent : colors.textMuted}
+                  />
+                  <Text style={[styles.tabText, on && styles.activeTabText]}>{tab.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
       </View>
@@ -593,41 +570,41 @@ const DramaChannel = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: colors.background,
     position: "relative",
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000",
+    backgroundColor: colors.background,
   },
   loadingText: {
     marginTop: 12,
-    color: "#fff",
+    color: colors.text,
     fontSize: 16,
   },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000",
+    backgroundColor: colors.background,
     paddingHorizontal: 32,
   },
   errorText: {
-    color: "#ff4757",
+    color: colors.danger,
     fontSize: 16,
     textAlign: "center",
     marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: "#1664FF",
+    backgroundColor: colors.accent,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 16,
     fontWeight: "500",
   },
@@ -641,16 +618,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  backButton: {
-    padding: 8,
-  },
   backIcon: {
     width: 20,
     height: 20,
-    tintColor: "#fff",
+    tintColor: colors.text,
   },
   headerTitle: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 18,
     fontWeight: "bold",
   },
@@ -662,26 +636,28 @@ const styles = StyleSheet.create({
     minWidth: 40,
     paddingRight: 16,
   },
-  headerPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+  searchButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: "rgba(255,255,255,0.16)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  headerPillText: { color: "#FFFFFF", fontSize: 13, fontWeight: "600" },
+  searchIcon: { width: 22, height: 22 },
   tabBar: {
     zIndex: 1000,
-    // backgroundColor: "#000",
+    // backgroundColor: colors.background,
     height: TAB_BAR_HEIGHT,
   },
   tabBarContent: {
     zIndex: 1000,
     flexDirection: "row",
     justifyContent: "space-around",
-    // backgroundColor: "#000",
+    // backgroundColor: colors.background,
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: "#333",
+    borderTopColor: colors.border,
     height: TAB_BAR_HEIGHT,
     // 添加阴影效果确保完全遮挡
     shadowColor: "#000",
@@ -694,20 +670,23 @@ const styles = StyleSheet.create({
     elevation: 8, // Android阴影
   },
   tabButton: {
+    flex: 1,
     alignItems: "center",
     paddingVertical: 4,
+    minHeight: 48,
   },
   tabIcon: {
     width: 24,
     height: 24,
   },
   tabText: {
-    color: "#888",
+    color: colors.textMuted,
     fontSize: 12,
     marginTop: 4,
   },
   activeTabText: {
-    color: "#fff",
+    color: colors.accent,
+    fontWeight: "600",
   },
   content: {
     flex: 1,
@@ -729,18 +708,18 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    color: "#888",
+    color: colors.textMuted,
     fontSize: 16,
     marginBottom: 16,
   },
   refreshButton: {
-    backgroundColor: "#1664FF",
+    backgroundColor: colors.accent,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 6,
   },
   refreshButtonText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "500",
   },
@@ -766,19 +745,19 @@ const styles = StyleSheet.create({
     tintColor: "#3D3D3D", // Icon color based on design
   },
   recommendationText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "500",
     marginRight: 4,
   },
   dotText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "500",
     marginRight: 4,
   },
   videoCountText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "500",
     flex: 1,
@@ -786,44 +765,44 @@ const styles = StyleSheet.create({
   arrowIcon: {
     width: 12,
     height: 12,
-    tintColor: "#FFFFFF",
+    tintColor: colors.text,
   },
   feedContainer: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: colors.background,
     position: "relative",
   },
   feedLoadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000",
+    backgroundColor: colors.background,
   },
   feedLoadingText: {
     marginTop: 12,
-    color: "#fff",
+    color: colors.text,
     fontSize: 16,
   },
   feedErrorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000",
+    backgroundColor: colors.background,
   },
   feedErrorText: {
-    color: "#ff4444",
+    color: colors.danger,
     fontSize: 16,
     textAlign: "center",
     marginBottom: 20,
   },
   feedRetryButton: {
-    backgroundColor: "#1664FF",
+    backgroundColor: colors.accent,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
   },
   feedRetryButtonText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 16,
     fontWeight: "bold",
   },

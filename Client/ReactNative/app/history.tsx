@@ -12,6 +12,7 @@ import {
   type HistoryEntry,
 } from "@/services/historyService";
 import { openSeries } from "@/utils/openSeries";
+import { colors } from "@/constants/theme";
 
 /**
  * History (deep dive 5, F2): what was watched, last first, with where the viewer is. Remove one, clear
@@ -126,7 +127,7 @@ export default function HistoryScreen() {
           </TouchableOpacity>
         </View>
       ) : entries === null ? (
-        <ActivityIndicator style={styles.center} color="#FFFFFF" />
+        <ActivityIndicator style={styles.center} color={colors.text} />
       ) : entries.length === 0 ? (
         <View style={styles.center}>
           <Text style={styles.text}>What you watch will be here.</Text>
@@ -180,22 +181,22 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 48, gap: 12 },
-  back: { color: "#FFFFFF", fontSize: 32 },
-  title: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", flex: 1 },
-  clear: { color: "#FF6B6B", fontSize: 14 },
+  back: { color: colors.text, fontSize: 32 },
+  title: { color: colors.text, fontSize: 18, fontWeight: "700", flex: 1 },
+  clear: { color: colors.danger, fontSize: 14 },
   pauseRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 8 },
-  banner: { color: "#FFD08A", fontSize: 13, paddingHorizontal: 16, paddingBottom: 8 },
+  banner: { color: colors.gold, fontSize: 13, paddingHorizontal: 16, paddingBottom: 8 },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
-  retry: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: "#333333" },
-  text: { color: "#FFFFFF", fontSize: 14 },
-  note: { color: "#B3B3B3", fontSize: 12 },
+  retry: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: colors.surfaceHigh },
+  text: { color: colors.text, fontSize: 14 },
+  note: { color: colors.textMuted, fontSize: 12 },
   row: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 8, gap: 12 },
   unavailable: { opacity: 0.45 },
   rowMain: { flex: 1, flexDirection: "row", alignItems: "center", gap: 12 },
-  poster: { width: 60, height: 90, borderRadius: 6, backgroundColor: "#1A1A1A" },
-  rowTitle: { color: "#FFFFFF", fontSize: 15, fontWeight: "600" },
-  remove: { color: "#FF6B6B", fontSize: 13 },
+  poster: { width: 60, height: 90, borderRadius: 6, backgroundColor: colors.surface },
+  rowTitle: { color: colors.text, fontSize: 15, fontWeight: "600" },
+  remove: { color: colors.danger, fontSize: 13 },
 });

@@ -1,6 +1,8 @@
 import React, { memo } from "react";
 import { StyleSheet, type ImageStyle, type StyleProp } from "react-native";
 import type { SvgProps } from "react-native-svg";
+import BookmarkIcon from "@/assets/icons/bookmark.svg";
+import BookmarkSelectedIcon from "@/assets/icons/bookmark-selected.svg";
 import CastIcon from "@/assets/icons/cast.svg";
 import CheckCircleIcon from "@/assets/icons/check-circle.svg";
 import ChevronLeftIcon from "@/assets/icons/chevron-left.svg";
@@ -28,10 +30,16 @@ import PlayIcon from "@/assets/icons/play.svg";
 import QualityIcon from "@/assets/icons/quality.svg";
 import RecommendIcon from "@/assets/icons/recommend.svg";
 import RefreshIcon from "@/assets/icons/refresh.svg";
+import SearchIcon from "@/assets/icons/search.svg";
 import SeriesIcon from "@/assets/icons/series.svg";
 import SpeedIcon from "@/assets/icons/speed.svg";
+import UserIcon from "@/assets/icons/user.svg";
+import UserSelectedIcon from "@/assets/icons/user-selected.svg";
+import { colors } from "@/constants/theme";
 
 const ICONS = {
+  "bookmark": BookmarkIcon,
+  "bookmark-selected": BookmarkSelectedIcon,
   "cast": CastIcon,
   "check-circle": CheckCircleIcon,
   "chevron-left": ChevronLeftIcon,
@@ -59,8 +67,11 @@ const ICONS = {
   "quality": QualityIcon,
   "recommend": RecommendIcon,
   "refresh": RefreshIcon,
+  "search": SearchIcon,
   "series": SeriesIcon,
   "speed": SpeedIcon,
+  "user": UserIcon,
+  "user-selected": UserSelectedIcon,
 } as const;
 
 export type IconName = keyof typeof ICONS;
@@ -74,7 +85,7 @@ interface SvgIconProps extends Omit<SvgProps, "style"> {
 const SvgIcon = memo(function SvgIcon({ name, style, color, ...props }: SvgIconProps) {
   const { tintColor, ...layoutStyle } = StyleSheet.flatten(style) ?? {};
   const Icon = ICONS[name];
-  const defaultColor = name === "home" || name === "feed" ? "#B3B3B3" : "#FFFFFF";
+  const defaultColor = name === "home" || name === "feed" ? colors.textMuted : colors.text;
   const width =
     typeof layoutStyle.width === "number" || typeof layoutStyle.width === "string"
       ? layoutStyle.width

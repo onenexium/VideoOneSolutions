@@ -5,6 +5,7 @@ import * as WebBrowser from "expo-web-browser";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ApiError } from "@/services/api";
 import { getTicket, replyToTicket, type TicketDetail } from "@/services/supportService";
+import { colors } from "@/constants/theme";
 
 /**
  * One ticket (deep dive 7, K2): the message as recorded, the replies, the decision and its reasons,
@@ -47,7 +48,7 @@ export default function TicketScreen() {
         <Text style={styles.title}>{ticket ? `Ticket #${ticket.number}` : "Ticket"}</Text>
       </View>
       {!ticket ? (
-        error ? <Text style={[styles.note, styles.pad]}>{error}</Text> : <ActivityIndicator color="#FFFFFF" />
+        error ? <Text style={[styles.note, styles.pad]}>{error}</Text> : <ActivityIndicator color={colors.text} />
       ) : (
         <ScrollView contentContainerStyle={[styles.pad, { paddingBottom: insets.bottom + 32 }]} keyboardShouldPersistTaps="handled">
           <Text style={styles.note}>
@@ -79,7 +80,7 @@ export default function TicketScreen() {
           )}
           {ticket.status !== "closed" && (
             <>
-              <TextInput style={[styles.input, styles.multiline]} value={reply} onChangeText={setReply} multiline maxLength={4000} placeholder="Write a reply" placeholderTextColor="#777" accessibilityLabel="Reply" />
+              <TextInput style={[styles.input, styles.multiline]} value={reply} onChangeText={setReply} multiline maxLength={4000} placeholder="Write a reply" placeholderTextColor={colors.textMuted} accessibilityLabel="Reply" />
               <TouchableOpacity style={[styles.primary, (busy || !reply.trim()) && styles.disabled]} disabled={busy || !reply.trim()} onPress={send} accessibilityRole="button">
                 <Text style={styles.primaryText}>{busy ? "Sending…" : "Send reply"}</Text>
               </TouchableOpacity>
@@ -93,22 +94,22 @@ export default function TicketScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 48, gap: 12 },
-  back: { color: "#FFFFFF", fontSize: 32 },
-  title: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", flex: 1 },
+  back: { color: colors.text, fontSize: 32 },
+  title: { color: colors.text, fontSize: 18, fontWeight: "700", flex: 1 },
   pad: { padding: 16, gap: 10 },
-  label: { color: "#B3B3B3", fontSize: 13, marginTop: 8 },
-  text: { color: "#FFFFFF", fontSize: 15, lineHeight: 21 },
-  note: { color: "#B3B3B3", fontSize: 12 },
+  label: { color: colors.textMuted, fontSize: 13, marginTop: 8 },
+  text: { color: colors.text, fontSize: 15, lineHeight: 21 },
+  note: { color: colors.textMuted, fontSize: 12 },
   bubble: { borderRadius: 10, padding: 12, gap: 4 },
-  mine: { backgroundColor: "#1E2A3A", alignSelf: "flex-end", maxWidth: "90%" },
-  theirs: { backgroundColor: "#1A1A1A", alignSelf: "flex-start", maxWidth: "90%" },
-  link: { color: "#7DB2FF", fontSize: 14, textDecorationLine: "underline", paddingVertical: 8 },
-  input: { backgroundColor: "#1A1A1A", color: "#FFFFFF", borderRadius: 10, paddingHorizontal: 14, minHeight: 48, fontSize: 15 },
+  mine: { backgroundColor: colors.surfaceHigh, alignSelf: "flex-end", maxWidth: "90%" },
+  theirs: { backgroundColor: colors.surface, alignSelf: "flex-start", maxWidth: "90%" },
+  link: { color: colors.accent, fontSize: 14, textDecorationLine: "underline", paddingVertical: 8 },
+  input: { backgroundColor: colors.surface, color: colors.text, borderRadius: 10, paddingHorizontal: 14, minHeight: 48, fontSize: 15 },
   multiline: { minHeight: 90, textAlignVertical: "top", paddingTop: 12, marginTop: 12 },
-  primary: { backgroundColor: "#FFFFFF", borderRadius: 10, height: 48, alignItems: "center", justifyContent: "center" },
-  primaryText: { color: "#000000", fontSize: 15, fontWeight: "700" },
+  primary: { backgroundColor: colors.accent, borderRadius: 10, height: 48, alignItems: "center", justifyContent: "center" },
+  primaryText: { color: colors.onAccent, fontSize: 15, fontWeight: "700" },
   disabled: { opacity: 0.5 },
-  error: { color: "#FF6B6B", fontSize: 14 },
+  error: { color: colors.danger, fontSize: 14 },
 });

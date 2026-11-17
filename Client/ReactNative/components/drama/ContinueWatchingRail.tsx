@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { USE_MOCK_API } from "@/services/api";
 import { getContinueWatching, hideFromContinue, type ContinueEntry } from "@/services/historyService";
+import { colors } from "@/constants/theme";
 
 /**
  * Continue watching on Home (deep dive 5, F3): the series being watched, last watched first, each at
@@ -88,14 +89,14 @@ const ContinueWatchingRail: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: { marginBottom: 32 },
-  title: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", paddingHorizontal: 16, marginBottom: 12 },
+  title: { color: colors.text, fontSize: 18, fontWeight: "700", paddingHorizontal: 16, marginBottom: 12 },
   row: { paddingHorizontal: 16, gap: 12 },
   card: { width: 110 },
-  poster: { width: 110, height: 160, borderRadius: 8, backgroundColor: "#1A1A1A" },
-  bar: { height: 3, backgroundColor: "#333333", borderRadius: 2, marginTop: 4 },
-  barFill: { height: 3, backgroundColor: "#FF4D4D", borderRadius: 2 },
-  name: { color: "#FFFFFF", fontSize: 13, marginTop: 6 },
-  episode: { color: "#B3B3B3", fontSize: 12 },
+  poster: { width: 110, height: 160, borderRadius: 8, backgroundColor: colors.surface },
+  bar: { height: 3, backgroundColor: colors.surfaceHigh, borderRadius: 2, marginTop: 4 },
+  barFill: { height: 3, backgroundColor: colors.accent, borderRadius: 2 },
+  name: { color: colors.text, fontSize: 13, marginTop: 6 },
+  episode: { color: colors.textMuted, fontSize: 12 },
 });
 
 export default ContinueWatchingRail;

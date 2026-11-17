@@ -8,6 +8,7 @@ import {
   Modal,
   Animated,
 } from "react-native";
+import { colors } from "@/constants/theme";
 
 interface LandscapeSpeedSelectorProps {
   currentSpeed: number;
@@ -139,10 +140,10 @@ const styles = StyleSheet.create({
   landscapeSpeedIcon: {
     width: 20,
     height: 20,
-    tintColor: "#FFFFFF",
+    tintColor: colors.text,
   },
   landscapeSpeedText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 15,
     fontWeight: "600",
     lineHeight: 24,
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   modalContent: {
-    backgroundColor: "#000",
+    backgroundColor: colors.background,
     borderRadius: 8,
     width: "90%",
     maxWidth: 375,
@@ -193,13 +194,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   speedOptionText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 15,
     fontWeight: "500",
     textAlign: "center",
   },
   speedOptionTextActive: {
-    color: "#fff",
+    color: colors.text,
   },
 });
 

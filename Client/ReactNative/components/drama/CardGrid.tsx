@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import DramaCover from "./DramaCover";
 import type { DramaChannelMeta } from "@/types/drama";
+import { colors } from "@/constants/theme";
 
 const { width: screenWidth } = Dimensions.get("window");
 const CARD_WIDTH = (screenWidth - 48) / 2;
@@ -38,7 +39,7 @@ const CardGrid: React.FC<CardGridProps> = ({
   bottomInset = 0,
 }) => {
   if (loading) {
-    return <ActivityIndicator style={styles.center} color="#FFFFFF" />;
+    return <ActivityIndicator style={styles.center} color={colors.text} />;
   }
   if (error) {
     return (
@@ -86,9 +87,9 @@ const CardGrid: React.FC<CardGridProps> = ({
 const styles = StyleSheet.create({
   row: { paddingHorizontal: 16, gap: 16, marginBottom: 16 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  message: { color: "#FFFFFF", fontSize: 14 },
-  retry: { marginTop: 12, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: "#333333" },
-  retryText: { color: "#FFFFFF" },
+  message: { color: colors.text, fontSize: 14 },
+  retry: { marginTop: 12, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: colors.surfaceHigh },
+  retryText: { color: colors.text },
 });
 
 export default CardGrid;

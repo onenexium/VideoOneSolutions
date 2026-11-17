@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ApiError } from "@/services/api";
 import { reportTitle, type ReportCategory } from "@/services/supportService";
+import { colors } from "@/constants/theme";
 
 const CATEGORIES: { value: ReportCategory; label: string }[] = [
   { value: "wrong_rating", label: "Wrong age rating" },
@@ -93,9 +94,9 @@ export default function ReportScreen() {
             </TouchableOpacity>
           ))}
           <Text style={styles.label}>Tell us more (optional)</Text>
-          <TextInput style={[styles.input, styles.multiline]} value={message} onChangeText={setMessage} multiline maxLength={4000} placeholderTextColor="#777" placeholder="What did you see?" accessibilityLabel="Details" />
+          <TextInput style={[styles.input, styles.multiline]} value={message} onChangeText={setMessage} multiline maxLength={4000} placeholderTextColor={colors.textMuted} placeholder="What did you see?" accessibilityLabel="Details" />
           <Text style={styles.label}>Email (so we can answer you)</Text>
-          <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" placeholder="you@example.com" placeholderTextColor="#777" accessibilityLabel="Email" />
+          <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" placeholder="you@example.com" placeholderTextColor={colors.textMuted} accessibilityLabel="Email" />
           {error && <Text style={styles.error}>{error}</Text>}
           <TouchableOpacity style={[styles.primary, busy && styles.disabled]} disabled={busy} onPress={send} accessibilityRole="button">
             <Text style={styles.primaryText}>{busy ? "Sending…" : "Send report"}</Text>
@@ -107,21 +108,21 @@ export default function ReportScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 48, gap: 12 },
-  back: { color: "#FFFFFF", fontSize: 32 },
-  title: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", flex: 1 },
+  back: { color: colors.text, fontSize: 32 },
+  title: { color: colors.text, fontSize: 18, fontWeight: "700", flex: 1 },
   body: { padding: 16, gap: 10 },
-  heading: { color: "#FFFFFF", fontSize: 22, fontWeight: "700" },
-  label: { color: "#B3B3B3", fontSize: 13, marginTop: 8 },
-  text: { color: "#FFFFFF", fontSize: 15 },
-  note: { color: "#B3B3B3", fontSize: 13 },
-  option: { backgroundColor: "#1A1A1A", borderRadius: 10, padding: 14 },
-  optionOn: { borderWidth: 1, borderColor: "#FFFFFF", backgroundColor: "#2A2A2A" },
-  input: { backgroundColor: "#1A1A1A", color: "#FFFFFF", borderRadius: 10, paddingHorizontal: 14, minHeight: 48, fontSize: 15 },
+  heading: { color: colors.text, fontSize: 22, fontWeight: "700" },
+  label: { color: colors.textMuted, fontSize: 13, marginTop: 8 },
+  text: { color: colors.text, fontSize: 15 },
+  note: { color: colors.textMuted, fontSize: 13 },
+  option: { backgroundColor: colors.surface, borderRadius: 10, padding: 14 },
+  optionOn: { borderWidth: 1, borderColor: colors.accent, backgroundColor: colors.surfaceHigh },
+  input: { backgroundColor: colors.surface, color: colors.text, borderRadius: 10, paddingHorizontal: 14, minHeight: 48, fontSize: 15 },
   multiline: { minHeight: 100, textAlignVertical: "top", paddingTop: 12 },
-  primary: { backgroundColor: "#FFFFFF", borderRadius: 10, height: 50, alignItems: "center", justifyContent: "center", marginTop: 8 },
-  primaryText: { color: "#000000", fontSize: 16, fontWeight: "700" },
+  primary: { backgroundColor: colors.accent, borderRadius: 10, height: 50, alignItems: "center", justifyContent: "center", marginTop: 8 },
+  primaryText: { color: colors.onAccent, fontSize: 16, fontWeight: "700" },
   disabled: { opacity: 0.5 },
-  error: { color: "#FF6B6B", fontSize: 14 },
+  error: { color: colors.danger, fontSize: 14 },
 });

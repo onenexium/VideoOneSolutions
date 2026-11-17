@@ -26,6 +26,7 @@ import { createShare } from "@/services/supportService";
 import { setAutoUnlock } from "@/services/walletService";
 import type { DramaChannelMeta } from "@/types/drama";
 import { openSeries } from "@/utils/openSeries";
+import { colors } from "@/constants/theme";
 
 export default function SeriesScreen() {
   const { shortId } = useLocalSearchParams<{ shortId: string }>();
@@ -131,7 +132,7 @@ export default function SeriesScreen() {
     return (
       <View style={[styles.container, styles.center]}>
         {header}
-        <ActivityIndicator color="#FFFFFF" />
+        <ActivityIndicator color={colors.text} />
       </View>
     );
   }
@@ -261,36 +262,36 @@ export default function SeriesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   center: { alignItems: "center", justifyContent: "center" },
   back: { position: "absolute", left: 12, zIndex: 10, width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center" },
-  backText: { color: "#FFFFFF", fontSize: 28, marginTop: -3 },
+  backText: { color: colors.text, fontSize: 28, marginTop: -3 },
   art: { width: "100%", aspectRatio: 16 / 11 },
   body: { padding: 16, gap: 10 },
-  title: { color: "#FFFFFF", fontSize: 24, fontWeight: "700" },
-  meta: { color: "#B3B3B3", fontSize: 13 },
-  advisory: { color: "#E5A00D", fontSize: 13 },
-  free: { color: "#5BD98A", fontSize: 13, fontWeight: "600" },
+  title: { color: colors.text, fontSize: 24, fontWeight: "700" },
+  meta: { color: colors.textMuted, fontSize: 13 },
+  advisory: { color: colors.gold, fontSize: 13 },
+  free: { color: colors.success, fontSize: 13, fontWeight: "600" },
   actions: { flexDirection: "row", gap: 12, marginVertical: 6 },
-  watch: { flex: 1, backgroundColor: "#FFFFFF", borderRadius: 10, height: 48, alignItems: "center", justifyContent: "center" },
-  watchText: { color: "#000000", fontSize: 15, fontWeight: "700" },
-  follow: { paddingHorizontal: 16, backgroundColor: "#1A1A1A", borderRadius: 10, height: 48, alignItems: "center", justifyContent: "center" },
-  following: { backgroundColor: "#2A3A2F" },
-  followText: { color: "#FFFFFF", fontSize: 14, fontWeight: "600" },
-  synopsis: { color: "#DDDDDD", fontSize: 14, lineHeight: 20 },
+  watch: { flex: 1, backgroundColor: colors.accent, borderRadius: 10, height: 48, alignItems: "center", justifyContent: "center" },
+  watchText: { color: colors.onAccent, fontSize: 15, fontWeight: "700" },
+  follow: { paddingHorizontal: 16, backgroundColor: colors.surface, borderRadius: 10, height: 48, alignItems: "center", justifyContent: "center" },
+  following: { backgroundColor: colors.surfaceHigh },
+  followText: { color: colors.text, fontSize: 14, fontWeight: "600" },
+  synopsis: { color: colors.textMuted, fontSize: 14, lineHeight: 20 },
   autoRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  autoText: { color: "#DDDDDD", fontSize: 13, flex: 1 },
+  autoText: { color: colors.textMuted, fontSize: 13, flex: 1 },
   tags: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  tag: { backgroundColor: "#1A1A1A", borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5 },
-  tagText: { color: "#CCCCCC", fontSize: 12 },
-  section: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", marginTop: 12 },
+  tag: { backgroundColor: colors.surface, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5 },
+  tagText: { color: colors.textMuted, fontSize: 12 },
+  section: { color: colors.text, fontSize: 18, fontWeight: "700", marginTop: 12 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  cell: { width: 52, height: 52, borderRadius: 8, backgroundColor: "#1A1A1A", alignItems: "center", justifyContent: "center" },
+  cell: { width: 52, height: 52, borderRadius: 8, backgroundColor: colors.surface, alignItems: "center", justifyContent: "center" },
   cellWatched: { opacity: 0.5 },
-  cellText: { color: "#FFFFFF", fontSize: 15, fontWeight: "600" },
+  cellText: { color: colors.text, fontSize: 15, fontWeight: "600" },
   lock: { position: "absolute", top: 2, right: 3, fontSize: 10 },
   similar: { gap: 12 },
-  message: { color: "#FFFFFF", fontSize: 14 },
-  retry: { marginTop: 12, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: "#333333" },
-  retryText: { color: "#FFFFFF" },
+  message: { color: colors.text, fontSize: 14 },
+  retry: { marginTop: 12, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: colors.surfaceHigh },
+  retryText: { color: colors.text },
 });

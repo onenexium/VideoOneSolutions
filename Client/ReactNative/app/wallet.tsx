@@ -8,6 +8,8 @@ import {
   type Wallet,
   type WalletEntry,
 } from "@/services/walletService";
+import Gradient from "@/components/ui/Gradient";
+import { colors } from "@/constants/theme";
 
 const LABEL: Record<WalletEntry["type"], string> = {
   unlock: "Episode unlocked",
@@ -88,7 +90,7 @@ export default function WalletScreen() {
           </TouchableOpacity>
         </View>
       ) : !wallet ? (
-        <ActivityIndicator style={styles.center} color="#FFFFFF" />
+        <ActivityIndicator style={styles.center} color={colors.text} />
       ) : (
         <FlatList
           data={entries}
@@ -112,6 +114,7 @@ export default function WalletScreen() {
                 </Text>
               )}
               <TouchableOpacity style={styles.earn} onPress={() => router.push("/rewards" as any)}>
+                <Gradient borderRadius={10} />
                 <Text style={styles.earnText}>Earn free coins</Text>
               </TouchableOpacity>
               <Text style={styles.sectionTitle}>History</Text>
@@ -136,27 +139,27 @@ export default function WalletScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000" },
+  container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, height: 48, gap: 12 },
-  back: { color: "#FFFFFF", fontSize: 32 },
-  title: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", flex: 1 },
+  back: { color: colors.text, fontSize: 32 },
+  title: { color: colors.text, fontSize: 18, fontWeight: "700", flex: 1 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  message: { color: "#FFFFFF", fontSize: 14 },
+  message: { color: colors.text, fontSize: 14 },
   emptyHistory: { textAlign: "center", marginTop: 12 },
-  retry: { marginTop: 12, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: "#333333" },
-  retryText: { color: "#FFFFFF" },
+  retry: { marginTop: 12, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: colors.surfaceHigh },
+  retryText: { color: colors.text },
   summary: { padding: 16, gap: 6 },
-  total: { color: "#FFFFFF", fontSize: 32, fontWeight: "700" },
-  line: { color: "#DDDDDD", fontSize: 14 },
-  expiry: { color: "#E5A00D", fontSize: 13 },
-  debt: { color: "#FF6B6B", fontSize: 13, marginTop: 6 },
-  earn: { backgroundColor: "#FFFFFF", borderRadius: 10, height: 46, alignItems: "center", justifyContent: "center", marginTop: 12 },
-  earnText: { color: "#000000", fontWeight: "700" },
-  sectionTitle: { color: "#FFFFFF", fontSize: 16, fontWeight: "700", marginTop: 18 },
+  total: { color: colors.text, fontSize: 32, fontWeight: "700" },
+  line: { color: colors.textMuted, fontSize: 14 },
+  expiry: { color: colors.gold, fontSize: 13 },
+  debt: { color: colors.danger, fontSize: 13, marginTop: 6 },
+  earn: { backgroundColor: colors.accent, borderRadius: 10, height: 48, alignItems: "center", justifyContent: "center", marginTop: 12, overflow: "hidden" },
+  earnText: { color: colors.onAccent, fontWeight: "700" },
+  sectionTitle: { color: colors.text, fontSize: 16, fontWeight: "700", marginTop: 18 },
   row: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10 },
   rowText: { flex: 1, gap: 2 },
-  rowTitle: { color: "#FFFFFF", fontSize: 15 },
-  note: { color: "#B3B3B3", fontSize: 12 },
-  amount: { color: "#5BD98A", fontSize: 15, fontWeight: "700" },
-  spent: { color: "#FFFFFF" },
+  rowTitle: { color: colors.text, fontSize: 15 },
+  note: { color: colors.textMuted, fontSize: 12 },
+  amount: { color: colors.success, fontSize: 15, fontWeight: "700" },
+  spent: { color: colors.text },
 });

@@ -13,6 +13,7 @@ import {
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { FeedItem } from "../../types/drama";
+import { colors } from "@/constants/theme";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -298,7 +299,7 @@ const styles = StyleSheet.create({
   backIcon: {
     width: 20,
     height: 20,
-    tintColor: "#FFFFFF",
+    tintColor: colors.text,
   },
   titleContainer: {
     flexDirection: "row",
@@ -310,10 +311,10 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     marginRight: 8,
-    tintColor: "#FFFFFF",
+    tintColor: colors.text,
   },
   headerTitle: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 18,
     fontWeight: "600",
   },
@@ -326,7 +327,7 @@ const styles = StyleSheet.create({
   closeIcon: {
     width: 16,
     height: 16,
-    tintColor: "#FFFFFF",
+    tintColor: colors.text,
   },
   listContainer: {
     padding: 20,
@@ -364,27 +365,27 @@ const styles = StyleSheet.create({
   playIcon: {
     width: 16,
     height: 16,
-    tintColor: "#FFFFFF",
+    tintColor: colors.text,
   },
   itemContent: {
     flex: 1,
     justifyContent: "center",
   },
   title: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 16,
     fontWeight: "500",
     lineHeight: 22,
     marginBottom: 8,
   },
   currentVideoTitle: {
-    color: "#FFFFFF", // Keep white text when highlighted
+    color: colors.text, // Keep white text when highlighted
   },
   currentVideoText: {
-    color: "#FFFFFF", // Keep white text when highlighted
+    color: colors.text, // Keep white text when highlighted
   },
   currentVideoIcon: {
-    tintColor: "#FFFFFF", // Keep white icon when highlighted
+    tintColor: colors.text, // Keep white icon when highlighted
   },
   metadataContainer: {
     flexDirection: "row",

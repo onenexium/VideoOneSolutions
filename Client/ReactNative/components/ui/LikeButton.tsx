@@ -3,6 +3,7 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import LottieView from "lottie-react-native";
 import { getImageAsset } from "../../utils/imageUtils";
+import { colors } from "@/constants/theme";
 
 interface LikeButtonProps {
   likeCount: number;
@@ -103,7 +104,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
 
         <SvgIcon
           name={isLiked ? "heart-filled" : "heart"}
-          color={isLiked ? "#FF3737" : "#FFFFFF"}
+          color={isLiked ? colors.accent : colors.text}
           style={[styles.heartIcon, { opacity: hideStaticIcon ? 0 : 1 }]}
         />
       </View>
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     height: 40,
   },
   interactionCount: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "400",
     textShadowColor: "rgba(0, 0, 0, 0.2)",

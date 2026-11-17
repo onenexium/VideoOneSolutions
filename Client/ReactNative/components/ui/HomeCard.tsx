@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { getImageSource } from "@/utils/imageUtils";
+import { colors } from "@/constants/theme";
 
 type HomeCardProps = {
   imgPath: any;
@@ -58,14 +59,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 12,
     overflow: "hidden",
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 16,
     elevation: 2,
     borderWidth: 4,
-    borderColor: "#9A912F",
+    borderColor: colors.gold,
   },
   image: {
     width: "100%",
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#4A4C20",
+    backgroundColor: colors.surfaceHigh,
   },
   textContainer: {
     flex: 1,
@@ -86,13 +87,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: colors.text,
     lineHeight: 24,
   },
   subTitle: {
     fontSize: 12,
     fontWeight: "400",
-    color: "#FFFFFF",
+    color: colors.text,
     opacity: 0.7,
     lineHeight: 16,
   },
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
   arrowIcon: {
     width: 13,
     height: 13,
-    tintColor: "#FFFFFF",
+    tintColor: colors.text,
   },
 });
 

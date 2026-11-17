@@ -7,6 +7,7 @@ import {
   Modal,
   Animated,
 } from "react-native";
+import { colors } from "@/constants/theme";
 
 interface PlaybackSpeedSelectorProps {
   currentSpeed: number;
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   speedButtonText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "500",
     opacity: 0.7,
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
     paddingBottom: 50, // 距离底部一些间距
   },
   modalContent: {
-    backgroundColor: "#000",
+    backgroundColor: colors.background,
     borderRadius: 8,
     width: "90%",
     maxWidth: 375,
@@ -196,13 +197,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   speedOptionText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 15,
     fontWeight: "500",
     textAlign: "center",
   },
   speedOptionTextActive: {
-    color: "#fff",
+    color: colors.text,
   },
 });
 
