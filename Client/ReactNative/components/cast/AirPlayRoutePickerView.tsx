@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import { requireNativeComponent, type ViewStyle } from 'react-native';
 
 export type AirPlayRoutePickerViewProps = {

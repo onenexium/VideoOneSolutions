@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import { useState, useEffect, useCallback } from "react";
 import { DramaChannelData } from "@/types/drama";
 import DramaService from "../services/dramaService";

@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import SvgIcon from "@/components/ui/SvgIcon";
 import React, { useEffect, useRef } from "react";
 import {
@@ -215,7 +212,7 @@ const RecommendationOverlay: React.FC<RecommendationOverlayProps> = ({
         >
           {/* Top title bar */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} style={styles.backButton}>
+            <TouchableOpacity onPress={onClose} style={styles.backButton} accessibilityRole="button" accessibilityLabel="Back">
               <SvgIcon
                 name="chevron-left"
                 style={styles.backIcon}
@@ -230,7 +227,7 @@ const RecommendationOverlay: React.FC<RecommendationOverlayProps> = ({
               <Text style={styles.headerTitle}>Recommend for you</Text>
             </View>
 
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton} accessibilityRole="button" accessibilityLabel="Close">
               <SvgIcon
                 name="close"
                 style={styles.closeIcon}

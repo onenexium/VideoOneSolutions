@@ -141,19 +141,11 @@ test("casting renders a page-level overlay and disables episode paging", () => {
   );
   assert.match(
     dramaPlayerSource,
-    /useEffect\(\(\) => \{\s*if \(isRemotePlaybackActive\) \{\s*setShowEpisodeSelector\(false\);\s*setShowVipModal\(false\);\s*setShowUnlockMultiple\(false\);/,
+    /useEffect\(\(\) => \{\s*if \(isRemotePlaybackActive\) \{\s*setShowEpisodeSelector\(false\);/,
   );
   assert.match(
     dramaPlayerSource,
     /<EpisodeSelectorModal[\s\S]*?visible=\{!isRemotePlaybackActive && showEpisodeSelector\}/,
-  );
-  assert.match(
-    dramaPlayerSource,
-    /<VipUnlockModal[\s\S]*?visible=\{!isRemotePlaybackActive && showVipModal\}/,
-  );
-  assert.match(
-    dramaPlayerSource,
-    /<UnlockMultipleModal[\s\S]*?visible=\{!isRemotePlaybackActive && showUnlockMultiple\}/,
   );
   assert.doesNotMatch(episodePlayerSource, /<CastActiveOverlay/);
   assert.doesNotMatch(episodePlayerSource, /useCast\s*\(/);

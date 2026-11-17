@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import { getImageAsset } from "@/utils/imageUtils";
 
 export const HOME_POSTER_CONFIG = [

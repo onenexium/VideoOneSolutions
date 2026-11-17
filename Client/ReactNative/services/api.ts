@@ -1,116 +1,154 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
+// Typed client for ott-api (REST /v1, JSON, Bearer JWT, problem+json errors).
+// Types in types/api.d.ts are generated from openapi/viewer.json (`npm run api:types`).
+// The base URL comes from the environment, never hard-coded:
+//   EXPO_PUBLIC_API_BASE_URL=https://api.example.com
+// Leave it unset to run on the built-in mock catalogue (services/mockCatalog.ts).
 
-import { UserService } from "./userService";
+import createClient, { type Middleware } from "openapi-fetch";
+import { Platform } from "react-native";
+import type { paths } from "@/types/api";
+import { requireUpdate } from "./appGate";
+import { markOffline, markOnline } from "./connectivity";
+import { appVersion } from "./version";
 
-// API Constants
-export const API_CONSTANTS = {
-  GET_DRAMA_FEED: "/videoone/drama/v1/getDramaFeed",
-  GET_DRAMA_CHANNEL: "/videoone/drama/v1/getDramaChannel",
-  GET_VIDEO_COMMENT: "/videoone/drama/v1/getVideoComments",
-  GET_DRAMA_LIST: "/videoone/drama/v1/getDramaList",
-  UNLOCK_DRAMA: "/videoone/drama/v1/getDramaDetail",
-};
+export const API_BASE_URL: string = (
+  process.env.EXPO_PUBLIC_API_BASE_URL ?? ""
+).replace(/\/+$/, "");
 
-// Server Configuration
-// const DEV_SERVER_HOST = "rtc-sg-test.bytedance.com";
-const RELEASE_SERVER_HOST = "videocloud.byteplusapi.com";
-// const SERVER_HOST = __DEV__ ? DEV_SERVER_HOST : RELEASE_SERVER_HOST;
-const SERVER_HOST = RELEASE_SERVER_HOST;
+/** True when no real backend is configured and mock data should be used. */
+export const USE_MOCK_API = API_BASE_URL === "";
 
-// Request Status Enum
-export enum RequestStatus {
-  SUCCESS = "SUCCESS",
-  FAILED = "FAILED",
+/** Error body shape returned by ott-api (application/problem+json). */
+export interface ProblemDetails {
+  type: string;
+  title: string;
+  status: number;
+  detail?: string;
+  errors?: string[];
+  requestId?: string;
+  [extra: string]: unknown;
 }
 
-// Common Constants
-export const COMMON_CONSTANTS = {
-  DEFAULT_FEED_PAGE_SIZE: 10,
-  DEFAULT_PLAY_INFO_TYPE: 1,
-  APP_ID: "698142",
-  OPEN_DEBUG_LOG: true,
-  CACHE_MAX_SIZE: 300 * 1024 * 1024,
-};
-
-// Request Utility Class
-export class Request {
-  static async getRequest<T extends Record<string, any>>(
-    path: string,
-    params?: Record<string, any>
-  ): Promise<T> {
-    const url = this.getUrl(path, params);
-
-    try {
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const body = (await response.json()) as T;
-        return body;
-      }
-
-      throw new Error(`GET request error: ${response.status}`);
-    } catch (error) {
-      console.error(`GET request for path=${path} failed:`, error);
-      throw error;
-    }
+export class ApiError extends Error {
+  constructor(public problem: ProblemDetails) {
+    super(problem.detail || problem.title);
+    this.name = "ApiError";
   }
 
-  static async postRequest<T extends Record<string, any>>(
-    path: string,
-    data: any
-  ): Promise<T> {
-    const url = this.getUrl(path);
-
-    try {
-      // Automatically add user ID and play_info_type to request data
-      const userId = await UserService.getUserId();
-      const requestData = {
-        ...data,
-        user_id: userId,
-        play_info_type: COMMON_CONSTANTS.DEFAULT_PLAY_INFO_TYPE,
-      };
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestData),
-      });
-
-      if (response.ok) {
-        const body = (await response.json()) as T;
-        return body;
-      }
-
-      console.error(
-        `POST request for path=${path} failed, request=${JSON.stringify(
-          requestData
-        )}, response=`,
-        await response.text()
-      );
-      throw new Error(`POST request error: ${response.status}`);
-    } catch (error) {
-      console.error(`POST request for path=${path} failed:`, error);
-      throw error;
-    }
+  get status() {
+    return this.problem.status;
   }
 
-  private static getUrl(path: string, params?: Record<string, any>): string {
-    const url = new URL(`https://${SERVER_HOST}${path}`);
-
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.append(key, String(value));
-      });
-    }
-
-    return url.toString();
+  /** The machine-readable error, e.g. "urn:ott:error:not-entitled". Branch on this. */
+  get type() {
+    return this.problem.type;
   }
 }
+
+function toProblem(error: unknown, response: Response): ProblemDetails {
+  if (error && typeof error === "object" && "status" in error) {
+    return error as ProblemDetails;
+  }
+  return {
+    type: "about:blank",
+    title: response.statusText || "Request failed",
+    status: response.status,
+  };
+}
+
+/** Returns `data` or throws ApiError built from the problem+json body. */
+export function unwrap<T>(result: {
+  data?: T;
+  error?: unknown;
+  response: Response;
+}): T {
+  if (result.error !== undefined || result.data === undefined) {
+    // 204 responses have no body: treat a successful empty response as success.
+    if (result.response.ok && result.error === undefined) {
+      return undefined as T;
+    }
+    throw new ApiError(toProblem(result.error, result.response));
+  }
+  return result.data;
+}
+
+/** The two hooks the session module registers (avoids a circular import). */
+interface SessionHooks {
+  /** Make sure a token exists (guest or logged in) before an authenticated request. */
+  ensureSession: () => Promise<void>;
+  /** Swap the refresh token for a new pair. Resolves false when the user must log in again. */
+  refreshSession: () => Promise<boolean>;
+}
+
+let accessToken: string | null = null;
+let hooks: SessionHooks | null = null;
+
+/** Keep the access token in memory only; the refresh token goes to secure storage. */
+export function setAccessToken(token: string | null) {
+  accessToken = token;
+}
+
+export function getAccessToken() {
+  return accessToken;
+}
+
+export function registerSessionHooks(next: SessionHooks) {
+  hooks = next;
+}
+
+const isAuthPath = (path: string) => path.startsWith("/v1/auth/");
+const retryCopies = new Map<string, Request>();
+
+const middleware: Middleware = {
+  async onRequest({ request, schemaPath, id }) {
+    request.headers.set("x-platform", Platform.OS === "ios" ? "ios" : "android");
+    // Once the API has a minimum build, a request without a valid version counts as too old.
+    const version = appVersion();
+    if (version) request.headers.set("x-app-version", version);
+    if (!isAuthPath(schemaPath)) {
+      if (!accessToken && hooks) {
+        try {
+          await hooks.ensureSession();
+        } catch {
+          // Open endpoints still work without a session.
+        }
+      }
+      // Keep a copy so one 401 can be retried with a fresh token.
+      retryCopies.set(id, request.clone());
+    }
+    // /v1/auth/* is public: never send a (possibly expired) bearer token to it.
+    if (accessToken && !isAuthPath(schemaPath)) {
+      request.headers.set("Authorization", `Bearer ${accessToken}`);
+    }
+    return request;
+  },
+  async onResponse({ response, schemaPath, id }) {
+    const copy = retryCopies.get(id);
+    retryCopies.delete(id);
+    markOnline(); // an answer of any kind: the network works
+    if (response.status === 426) {
+      requireUpdate(); // this build is no longer supported: the app shows its update screen
+      return undefined;
+    }
+    if (response.status !== 401 || !copy || isAuthPath(schemaPath) || !hooks) {
+      return undefined;
+    }
+    if (!(await hooks.refreshSession())) {
+      return undefined;
+    }
+    copy.headers.set("Authorization", `Bearer ${accessToken}`);
+    return fetch(copy);
+  },
+  // A request that never got a response (offline, timeout) must not leave its retry copy behind.
+  onError({ id }) {
+    retryCopies.delete(id);
+    markOffline();
+    return undefined;
+  },
+};
+
+/** For tests: requests still holding a retry copy (must be 0 when nothing is in flight). */
+export const pendingRetryCopies = () => retryCopies.size;
+
+export const api = createClient<paths>({ baseUrl: API_BASE_URL });
+api.use(middleware);

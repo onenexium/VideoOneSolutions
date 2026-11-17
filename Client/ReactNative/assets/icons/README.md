@@ -1,9 +1,6 @@
 # Interface icons
 
-These vector paths follow the short drama icon shapes and states in the
-[VideoOne design](https://www.figma.com/design/FOqxAGW2VrDD5QZMQ2hKpr/Byteplus-VideoOne-center?node-id=9618-19272)
-and the Flutter reference assets under `vod_flutter_mini_drama/assets/minidrama/common`.
-They are recreated vector resources, not Figma exports or embedded PNG images.
+These vector paths follow the short drama icon shapes and states of the original reference app.
 
 Use `components/ui/SvgIcon` for static icons. Its `color` prop takes precedence
 over an existing `tintColor` style; dimensions, margins, and opacity are preserved.

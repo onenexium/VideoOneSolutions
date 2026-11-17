@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import SvgIcon from "@/components/ui/SvgIcon";
 import React, { useState, useRef, useCallback, useMemo } from "react";
 import {
@@ -16,7 +13,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useRouter } from "expo-router";
-import { DramaChannelMeta, FeedItem, DramaEpisode } from "@/types/drama";
+import { FeedItem, DramaEpisode } from "@/types/drama";
 import {
   DramaCarousel,
   DramaList,
@@ -28,17 +25,17 @@ import {
 import { useDramaChannel } from "@/hooks/useDramaChannel";
 import { useSeekGestureLock } from "@/hooks/useSeekGestureLock";
 import { DramaService } from "@/services/dramaService";
-import { setStrategyList } from "@/utils/dramaUtils";
-import {
-  setPreRenderCallback,
-  TTVideoEngine,
-  VideoSource,
-} from "../utils/playerConfig";
+import { USE_MOCK_API } from "@/services/api";
+import AccountButton from "@/components/shared/AccountButton";
+import { openSeries } from "@/utils/openSeries";
+import ContinueWatchingRail from "@/components/drama/ContinueWatchingRail";
+import { trackPreviewWatched } from "@/services/eventsService";
 
 const { height } = Dimensions.get("window");
 const { width: screenWidth } = Dimensions.get("window");
 
 const TAB_BAR_HEIGHT = 80;
+const FEED_PAGE_SIZE = 20;
 
 const DramaChannel = () => {
   const router = useRouter();
@@ -62,13 +59,9 @@ const DramaChannel = () => {
   const [feedLoading, setFeedLoading] = useState(false);
   const [feedError, setFeedError] = useState<string | null>(null);
   const [currentFeedIndex, setCurrentFeedIndex] = useState(0);
-  const [scrollStartY, setScrollStartY] = useState(0);
   const suppressViewabilityRef = useRef(false);
   const [showRecommendationOverlay, setShowRecommendationOverlay] =
     useState(false);
-  const [shouldTriggerScrollPreRender, setShouldTriggerScrollPreRender] =
-    useState(false);
-  const hasTriggeredPreRender = useRef(false);
   const currentVideoTimeRef = useRef(0);
 
   const flashListRef = useRef<any>(null);
@@ -82,30 +75,20 @@ const DramaChannel = () => {
     }
   };
 
-  // Get Feed data
+  // Get Feed data: the first page, then more as the viewer nears the end
+  const feedCursorRef = useRef<string | null>(null);
+  const feedMoreRef = useRef(false);
+  const feedLoadingMoreRef = useRef(false);
+
   const fetchFeedData = useCallback(async () => {
     try {
       setFeedLoading(true);
       setFeedError(null);
 
-      const feedData = await DramaService.getDramaFeed(20);
-      setFeedItems(feedData);
-      const videoList = feedData.map((item) => item.video_meta);
-      setStrategyList(videoList);
-      setPreRenderCallback({
-        onPlayerCreated(player: TTVideoEngine, source: VideoSource) {
-          const vid = source.vid();
-          console.log("EngineStrategy: onPlayerCreated vid", vid);
-          console.log(
-            "EngineStrategy: onPlayerCreated videoList",
-            videoList.map((item) => item.vid)
-          );
-          const targetIndex = videoList.findIndex((item) => item.vid === vid);
-          if (targetIndex !== -1) {
-            console.log("EngineStrategy: onPlayerCreated index", targetIndex);
-          }
-        },
-      });
+      const page = await DramaService.getDramaFeedPage(FEED_PAGE_SIZE);
+      feedCursorRef.current = page.nextCursor;
+      feedMoreRef.current = page.nextCursor !== null;
+      setFeedItems(page.items);
     } catch (err) {
       console.error("Failed to fetch feed data:", err);
       setFeedError(
@@ -116,9 +99,37 @@ const DramaChannel = () => {
     }
   }, []);
 
+  const fetchMoreFeed = useCallback(async () => {
+    const cursor = feedCursorRef.current;
+    if (!feedMoreRef.current || !cursor || feedLoadingMoreRef.current) return;
+    feedLoadingMoreRef.current = true;
+    try {
+      const page = await DramaService.getDramaFeedPage(FEED_PAGE_SIZE, cursor);
+      feedCursorRef.current = page.nextCursor;
+      feedMoreRef.current = page.nextCursor !== null;
+      setFeedItems((prev) => {
+        const seen = new Set(prev.map((item) => item.video_meta.vid));
+        return [...prev, ...page.items.filter((i) => !seen.has(i.video_meta.vid))];
+      });
+    } catch (err) {
+      // Keep what is on screen; the next scroll to the end tries again.
+      console.warn("Failed to fetch more of the feed:", err);
+    } finally {
+      feedLoadingMoreRef.current = false;
+    }
+  }, []);
+
   // Handle progress update
+  const feedItemsRef = useRef<FeedItem[]>([]);
+  const feedIndexRef = useRef(0);
+  feedItemsRef.current = feedItems;
+  feedIndexRef.current = currentFeedIndex;
   const handleProgress = useCallback((progress: number) => {
     currentVideoTimeRef.current = progress;
+    // A preview watched long enough counts for the ranking (only with the viewer's consent).
+    const item = feedItemsRef.current[feedIndexRef.current];
+    const ref = item?.video_meta.playback;
+    if (ref) trackPreviewWatched({ series: ref.series, language: ref.language, seconds: progress });
   }, []);
 
   // Create viewability config callback pairs
@@ -145,36 +156,6 @@ const DramaChannel = () => {
       },
     ],
     []
-  );
-
-  // Handle scroll distance limit
-  const handleScrollBeginDrag = useCallback((event: any) => {
-    setScrollStartY(event.nativeEvent.contentOffset.y);
-    hasTriggeredPreRender.current = false; // Reset trigger flag when starting new scroll
-  }, []);
-
-  const handleScrollEndDrag = useCallback((event: any) => {
-    setShouldTriggerScrollPreRender(false);
-  }, []);
-
-  // Handle scroll event to detect downward scrolling
-  const handleScroll = useCallback(
-    (event: any) => {
-      const currentScrollY = event.nativeEvent.contentOffset.y;
-      const scrollDistance = Math.abs(currentScrollY - scrollStartY);
-      const isScrollingDown = currentScrollY > scrollStartY;
-
-      // Trigger scroll pre-render when scrolling down more than 50px, but only once per scroll gesture
-      if (
-        isScrollingDown &&
-        scrollDistance > 50 &&
-        !hasTriggeredPreRender.current
-      ) {
-        setShouldTriggerScrollPreRender(true);
-        hasTriggeredPreRender.current = true; // Mark as triggered for this scroll gesture
-      }
-    },
-    [scrollStartY]
   );
 
   const handleFullscreenFreeze = useCallback(() => {
@@ -247,7 +228,7 @@ const DramaChannel = () => {
         caption: video_meta.caption,
         duration: video_meta.duration,
         cover_url: video_meta.cover_url,
-        video_model: video_meta.video_model,
+        sources: video_meta.sources,
         play_times: video_meta.play_times,
         subtitle: video_meta.subtitle,
         create_time: video_meta.create_time,
@@ -259,7 +240,6 @@ const DramaChannel = () => {
         width: video_meta.width,
         order: video_meta.order,
         display_type: video_meta.display_type,
-        subtitle_auth_token: video_meta.subtitle_auth_token,
         vip: video_meta.vip,
       };
     },
@@ -297,7 +277,6 @@ const DramaChannel = () => {
             dramaId={item.drama_meta.drama_id}
             dramaVideoOrientation={item.drama_meta.drama_video_orientation}
             isFeedTab={true}
-            shouldTriggerScrollPreRender={shouldTriggerScrollPreRender}
             onFullscreen={handleFullscreenFreeze}
             onError={(error) => {
               console.error(`Feed Episode ${index} error:`, error);
@@ -319,7 +298,6 @@ const DramaChannel = () => {
       convertFeedItemToEpisode,
       handleProgress,
       onSeekingChange,
-      shouldTriggerScrollPreRender,
       handleFullscreenFreeze,
       handleCardPress,
     ]
@@ -330,18 +308,13 @@ const DramaChannel = () => {
     router.push("/");
   };
 
-  const handleDramaPress = (drama: DramaChannelMeta) => {
-    // Navigate to player page
-    router.push({
-      pathname: "/drama_player",
-      params: {
-        dramaId: drama.dramaId,
-        dramaTitle: drama.dramaTitle,
-        dramaCoverUrl: drama.dramaCoverUrl,
-        dramaVideoOrientation: drama.dramaVideoOrientation.toString(),
-      },
-    } as any);
-  };
+  const handleDramaPress = openSeries; // a card opens its series page
+
+  // "See all": a rail's own list, or (no rail) every series. Not for the mock catalogue.
+  const seeAll = (rail: string | undefined, title: string) =>
+    USE_MOCK_API
+      ? undefined
+      : () => router.push({ pathname: "/drama_all", params: rail ? { rail, title } : { title } } as any);
 
   const handleRetry = async () => {
     await refresh();
@@ -381,10 +354,40 @@ const DramaChannel = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
-        <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+        <TouchableOpacity onPress={handleBackPress} style={styles.backButton} accessibilityRole="button" accessibilityLabel="Back">
           <SvgIcon name="chevron-left" style={styles.backIcon} />
         </TouchableOpacity>
-        <View style={styles.headerRight} />
+        <View style={styles.headerRight}>
+          {!USE_MOCK_API && (
+            <>
+              <TouchableOpacity
+                style={styles.headerPill}
+                onPress={() => router.push("/search" as any)}
+                accessibilityRole="button"
+                accessibilityLabel="Search"
+              >
+                <Text style={styles.headerPillText}>Search</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.headerPill}
+                onPress={() => router.push("/my_list" as any)}
+                accessibilityRole="button"
+                accessibilityLabel="My List"
+              >
+                <Text style={styles.headerPillText}>My List</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.headerPill}
+                onPress={() => router.push("/help" as any)}
+                accessibilityRole="button"
+                accessibilityLabel="Help"
+              >
+                <Text style={styles.headerPillText}>?</Text>
+              </TouchableOpacity>
+            </>
+          )}
+          <AccountButton />
+        </View>
       </View>
 
       {/* Content Area */}
@@ -405,12 +408,16 @@ const DramaChannel = () => {
               </View>
             )}
 
+            {/* What the viewer is watching (BE-66) */}
+            <ContinueWatchingRail />
+
             {/* Trending Recommendations */}
             {dramaData.trending.length > 0 && (
               <DramaList
                 data={dramaData.trending}
                 onItemPress={handleDramaPress}
                 type="trending"
+                onSeeAll={seeAll(dramaData.railKeys?.trending, "Trending now")}
               />
             )}
 
@@ -420,6 +427,7 @@ const DramaChannel = () => {
                 data={dramaData.new}
                 onItemPress={handleDramaPress}
                 type="new"
+                onSeeAll={seeAll(dramaData.railKeys?.new, "New release")}
               />
             )}
 
@@ -429,6 +437,7 @@ const DramaChannel = () => {
                 data={dramaData.recommend}
                 onItemPress={handleDramaPress}
                 type="recommend"
+                onSeeAll={seeAll(undefined, "All series")}
               />
             )}
 
@@ -468,12 +477,11 @@ const DramaChannel = () => {
                 data={feedItems}
                 renderItem={renderFeedVideoItem}
                 keyExtractor={(item: FeedItem) => item.video_meta.vid}
+                onEndReached={fetchMoreFeed}
+                onEndReachedThreshold={3}
                 pagingEnabled
                 scrollEnabled={!isSeeking}
                 viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
-                onScrollBeginDrag={handleScrollBeginDrag}
-                onScrollEndDrag={handleScrollEndDrag}
-                onScroll={handleScroll}
                 onMomentumScrollEnd={handleMomentumScrollEnd}
                 scrollEventThrottle={16}
                 showsVerticalScrollIndicator={false}
@@ -492,8 +500,7 @@ const DramaChannel = () => {
                 extraData={{
                   currentFeedIndex,
                   feedItems,
-                  shouldTriggerScrollPreRender,
-                }}
+                            }}
               />
             )}
 
@@ -531,6 +538,9 @@ const DramaChannel = () => {
             <TouchableOpacity
               style={styles.tabButton}
               onPress={() => handleTabChange(0)}
+              accessibilityRole="button"
+              accessibilityLabel="Home"
+              accessibilityState={{ selected: currentTab === 0 }}
             >
               <SvgIcon
                 name={currentTab === 0 ? "home-selected" : "home"}
@@ -548,6 +558,9 @@ const DramaChannel = () => {
             <TouchableOpacity
               style={styles.tabButton}
               onPress={() => handleTabChange(1)}
+              accessibilityRole="button"
+              accessibilityLabel="For you"
+              accessibilityState={{ selected: currentTab === 1 }}
             >
               <SvgIcon
                 name={currentTab === 1 ? "feed-selected" : "feed"}
@@ -642,8 +655,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   headerRight: {
-    width: 40,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 8,
+    minWidth: 40,
+    paddingRight: 16,
   },
+  headerPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.16)",
+  },
+  headerPillText: { color: "#FFFFFF", fontSize: 13, fontWeight: "600" },
   tabBar: {
     zIndex: 1000,
     // backgroundColor: "#000",

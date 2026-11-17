@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import SvgIcon from "@/components/ui/SvgIcon";
 import React from "react";
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
@@ -37,6 +34,8 @@ const DramaCover: React.FC<DramaCoverProps> = ({
   if (type === "trending") {
     return (
       <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={drama.dramaTitle}
         style={[
           styles.trendingContainer,
           {
@@ -106,6 +105,8 @@ const DramaCover: React.FC<DramaCoverProps> = ({
   if (type === "new") {
     return (
       <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={drama.dramaTitle}
         style={[
           styles.newContainer,
           {
@@ -156,6 +157,8 @@ const DramaCover: React.FC<DramaCoverProps> = ({
   if (type === "recommend") {
     return (
       <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={drama.dramaTitle}
         style={[
           styles.recommendContainer,
           {

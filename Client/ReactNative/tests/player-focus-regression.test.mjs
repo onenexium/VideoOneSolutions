@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
+import { register } from 'node:module';
 import ts from 'typescript';
+
+// The component's cleanup goes through the real callPlayer helper, so use the real one here.
+register('./support/ts-loader.mjs', import.meta.url);
+const { callPlayer } = await import('../utils/safePlayer.ts');
 
 const source = readFileSync(new URL('../components/player/VideoPlayer.tsx', import.meta.url), 'utf8');
 
@@ -23,9 +28,10 @@ function appStatePlayer({ focused = true, active = true, casting = false } = {})
   let pauses = 0;
   const focus = { current: focused };
   runEffect('// Handle app state changes', '  useFocusEffect(', {
-    useEffect: (effect) => effect(),
+    callPlayer, useEffect: (effect) => effect(),
     AppState: { addEventListener: (_, callback) => { listener = callback; } },
-    playerRef: { current: { play: () => plays++, pause: () => pauses++ } },
+    player: { play: () => plays++, pause: () => pauses++ },
+    hasSourceRef: { current: true },
     isPlayingRef: { current: false },
     isActiveRef: { current: active },
     isScreenFocusedRef: focus,
@@ -76,7 +82,7 @@ test('a hidden page cannot overwrite media configured for the AirPlay session', 
     vm.runInNewContext(code, {
       useEffect: (effect) => effect(), Platform: { OS: 'ios' },
       isScreenFocused: focused, isActive: true, episode: { vip: false },
-      currentPlayInfo: { MainPlayUrl: 'https://example.com/video.mp4' },
+      currentSource: { url: 'https://example.com/video.mp4' },
       currentTime: 10, dramaTitle: 'Example', dramaCoverUrl: '', isPlaying: true,
       AirPlayRelay: { configureMedia: () => { configured++; return Promise.resolve(); } },
     });
@@ -87,12 +93,57 @@ test('a hidden page cannot overwrite media configured for the AirPlay session', 
 test('blur pauses the native player even before its playing callback arrives', () => {
   let pauses = 0;
   let cleanup;
-  runEffect('  useFocusEffect(', '  const videoModel =', {
-    useFocusEffect: (effect) => { cleanup = effect(); }, useCallback: (fn) => fn,
-    playerRef: { current: { play() {}, pause: () => pauses++ } },
+  runEffect('  useFocusEffect(', '  const handleVideoPress =', {
+    callPlayer, useFocusEffect: (effect) => { cleanup = effect(); }, useCallback: (fn) => fn,
+    player: { play() {}, pause: () => pauses++ }, hasSourceRef: { current: true },
     isActiveRef: { current: true }, isPlayingRef: { current: false },
     shouldPauseLocalPlayback: () => false, setIsPlaying() {}, onPlayPause: undefined,
   });
   cleanup();
   assert.equal(pauses, 1);
+});
+
+const RELEASED = () => {
+  // What expo-video throws once the component has unmounted (seen on a real phone).
+  throw new Error(
+    ["Call to function 'VideoPlayer.pause' has been rejected.",
+      '→ Caused by: Cannot use shared object that was already released'].join(String.fromCharCode(10)),
+  );
+};
+
+function blurWith(pause) {
+  let cleanup;
+  const states = [];
+  runEffect('  useFocusEffect(', '  const handleVideoPress =', {
+    callPlayer, useFocusEffect: (effect) => { cleanup = effect(); }, useCallback: (fn) => fn,
+    player: { play() {}, pause }, hasSourceRef: { current: true },
+    isActiveRef: { current: true }, isPlayingRef: { current: true },
+    shouldPauseLocalPlayback: () => false, setIsPlaying: (v) => states.push(v), onPlayPause: undefined,
+  });
+  return { cleanup, states };
+}
+
+test('leaving a screen after the native player was released does not throw', () => {
+  const { cleanup, states } = blurWith(RELEASED);
+  assert.doesNotThrow(() => cleanup());
+  assert.deepEqual(states, [false], 'the UI state is still reset');
+});
+
+test('a real pause failure during blur is not swallowed', () => {
+  const { cleanup } = blurWith(() => { throw new Error('decoder crashed'); });
+  assert.throws(() => cleanup(), /decoder crashed/);
+});
+
+test('backgrounding after the player was released does not throw', () => {
+  let listener;
+  runEffect('// Handle app state changes', '  useFocusEffect(', {
+    callPlayer, useEffect: (effect) => effect(),
+    AppState: { addEventListener: (_, callback) => { listener = callback; } },
+    player: { play: RELEASED, pause: RELEASED }, hasSourceRef: { current: true },
+    isPlayingRef: { current: true }, isActiveRef: { current: true },
+    isScreenFocusedRef: { current: true }, shouldPauseLocalPlayback: () => false,
+    onPlayPause: undefined,
+  });
+  assert.doesNotThrow(() => listener('background'));
+  assert.doesNotThrow(() => listener('active'));
 });

@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import { Link, Stack } from "expo-router";
 import { StyleSheet } from "react-native";
 

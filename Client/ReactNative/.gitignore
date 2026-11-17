@@ -47,3 +47,6 @@ app-example
 /docs/
 /.idea/
 /ios/Podfile.lock
+
+# test videos served by the dev server (large; see dev-media/README.md)
+dev-media/*.mp4

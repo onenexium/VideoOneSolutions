@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import SvgIcon from "@/components/ui/SvgIcon";
 import React, {
   useState,
@@ -19,6 +16,7 @@ import {
   TouchableOpacity,
   FlatList,
   Platform,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
@@ -29,20 +27,16 @@ import {
 } from "@react-navigation/native";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { DramaService } from "@/services/dramaService";
+import { autoUnlocked, locked, opened, type AutoUnlockedEvent } from "@/services/playbackEvents";
+import { PlaybackService } from "@/services/playbackService";
+import { undoUnlock } from "@/services/walletService";
+import UnlockSheet from "@/components/player/UnlockSheet";
 import { DramaEpisode } from "@/types/drama";
 import {
   EpisodePlayer,
   EpisodeSelectorModal,
-  VipUnlockModal,
-  UnlockMultipleModal,
 } from "../components";
 import CastActiveOverlay from "../components/cast/CastActiveOverlay";
-import { setStrategyList, addStrategyList } from "@/utils/dramaUtils";
-import {
-  setPreRenderCallback,
-  TTVideoEngine,
-  VideoSource,
-} from "../utils/playerConfig";
 import { useCast } from "../hooks/useCast";
 import { useSeekGestureLock } from "../hooks/useSeekGestureLock";
 import { AirPlayRelay } from "../components/cast/AirPlayRelay";
@@ -89,13 +83,8 @@ export default function DramaPlayer() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [scrollStartY, setScrollStartY] = useState(0);
-  const [shouldTriggerScrollPreRender, setShouldTriggerScrollPreRender] =
-    useState(false);
   // Modal state management
   const [showEpisodeSelector, setShowEpisodeSelector] = useState(false);
-  const [showVipModal, setShowVipModal] = useState(false);
-  const [showUnlockMultiple, setShowUnlockMultiple] = useState(false);
 
   const handleAirPlayExitIntent = useCallback(() => {
     pendingAirPlayExitRef.current = CommonActions.goBack();
@@ -156,8 +145,6 @@ export default function DramaPlayer() {
   useEffect(() => {
     if (isRemotePlaybackActive) {
       setShowEpisodeSelector(false);
-      setShowVipModal(false);
-      setShowUnlockMultiple(false);
     }
   }, [isRemotePlaybackActive]);
 
@@ -191,6 +178,79 @@ export default function DramaPlayer() {
     }
   }, [episodeOrder]);
 
+  // ---- coins: unlocking, and the notice for an automatic unlock ----
+  const [autoNotice, setAutoNotice] = useState<AutoUnlockedEvent | null>(null);
+
+  const setLocked = useCallback((numbers: number[], isLocked: boolean) => {
+    setEpisodes((prev) =>
+      prev.map((e) => (numbers.includes(e.order) ? { ...e, vip: isLocked } : e)),
+    );
+  }, []);
+
+  useEffect(
+    () =>
+      autoUnlocked.subscribe((event) => {
+        if (event.series !== dramaId) return;
+        setAutoNotice(event);
+        setLocked([event.episode], false);
+      }),
+    [dramaId, setLocked],
+  );
+  // The API says an episode must be unlocked (e.g. auto-unlock could not pay): lock it, which shows the sheet.
+  useEffect(
+    () =>
+      locked.subscribe((event) => {
+        if (event.series === dramaId) setLocked([event.episode], true);
+      }),
+    [dramaId, setLocked],
+  );
+  useEffect(() => {
+    if (!autoNotice) return;
+    const timer = setTimeout(() => setAutoNotice(null), 10_000);
+    return () => clearTimeout(timer);
+  }, [autoNotice]);
+
+  const undoAutoUnlock = useCallback(async () => {
+    const notice = autoNotice;
+    setAutoNotice(null);
+    if (!notice) return;
+    try {
+      await undoUnlock(notice.unlockId);
+      setLocked([notice.episode], true); // locked again: playback stops and the sheet shows
+    } catch {
+      Alert.alert("Could not undo", "It is too late to undo this unlock.");
+    }
+  }, [autoNotice, setLocked]);
+
+  // The rating card: for a few seconds when a series that is not for everyone starts playing, once
+  // per series each time the player is opened.
+  const [ratingCard, setRatingCard] = useState<string | null>(null);
+  const ratedRef = useRef(new Set<string>());
+  useEffect(
+    () =>
+      opened.subscribe((event) => {
+        if (event.series !== dramaId || event.rating === "U" || ratedRef.current.has(event.series)) return;
+        ratedRef.current.add(event.series);
+        setRatingCard(event.rating.replace("UA", "U/A ") + (event.rating === "A" ? " · Adults only" : "+"));
+      }),
+    [dramaId],
+  );
+  useEffect(() => {
+    if (!ratingCard) return;
+    const timer = setTimeout(() => setRatingCard(null), 4000);
+    return () => clearTimeout(timer);
+  }, [ratingCard]);
+
+  // Prepare the next episode's session once the current one has had a moment to start, so the swipe
+  // only has to start it. A locked next episode is left alone (nothing to prepare until unlocked).
+  useEffect(() => {
+    const next = episodes[currentIndex + 1];
+    const ref = next?.playback;
+    if (!ref || next.vip) return;
+    const timer = setTimeout(() => PlaybackService.prefetch(ref), 3000);
+    return () => clearTimeout(timer);
+  }, [episodes, currentIndex]);
+
   // Get episode data
   const fetchEpisodes = useCallback(async () => {
     try {
@@ -202,7 +262,6 @@ export default function DramaPlayer() {
       });
 
       setEpisodes(episodesData);
-      setStrategyList(episodesData);
 
       // If episode number is specified, jump to corresponding episode
       if (episodeOrder !== undefined) {
@@ -240,38 +299,9 @@ export default function DramaPlayer() {
     router.back();
   }, [isLandscape, handleAirPlayExitIntent, stopCastingForExit]);
 
-  // Handle episode unlock
-  const handleEpisodeUnlocked = useCallback(
-    (
-      episodeIndex: number,
-      unlockData?: { video_model: string; subtitle_auth_token: string }
-    ) => {
-      setEpisodes((prevEpisodes) =>
-        prevEpisodes.map((episode, index) => {
-          if (index === episodeIndex) {
-            return {
-              ...episode,
-              vip: false, // Remove VIP status after unlock
-              video_model: unlockData?.video_model || episode.video_model, // Update video_model
-              subtitle_auth_token:
-                unlockData?.subtitle_auth_token || episode.subtitle_auth_token, // Update subtitle_auth_token
-            };
-          }
-          return episode;
-        })
-      );
-    },
-    []
-  );
-
   // Initialize data
   useEffect(() => {
     fetchEpisodes();
-    setPreRenderCallback({
-      onPlayerCreated(player: TTVideoEngine, source: VideoSource) {
-        console.log("EngineStrategy:onPlayerCreated", source.vid());
-      },
-    });
   }, [fetchEpisodes]);
 
   // Listen to screen orientation changes
@@ -320,30 +350,6 @@ export default function DramaPlayer() {
       subscription.remove();
     };
   }, [currentIndex, screenDimensions.height]);
-
-  // Check if current episode is VIP, show unlock modal if so
-  useEffect(() => {
-    if (isRemotePlaybackActive) {
-      return;
-    }
-
-    // If UnlockMultipleModal is showing, don't show VIP modal
-    if (showUnlockMultiple) {
-      setShowVipModal(false);
-      return;
-    }
-
-    // Delay VIP status check to avoid immediately showing VIP modal after unlock
-    const timer = setTimeout(() => {
-      if (episodes.length > 0 && episodes[currentIndex]?.vip) {
-        setShowVipModal(true);
-      } else {
-        setShowVipModal(false);
-      }
-    }, 500); // Delay 500ms
-
-    return () => clearTimeout(timer);
-  }, [episodes, currentIndex, showUnlockMultiple, isRemotePlaybackActive]);
 
   // Handle playback state change
   const handlePlayPause = useCallback((playing: boolean) => {
@@ -396,53 +402,6 @@ export default function DramaPlayer() {
     [currentIndex, handleEpisodeChange]
   );
 
-  // Handle VIP unlock
-  const handleVipUnlock = useCallback(
-    (
-      success: boolean,
-      unlockData?: { video_model: string; subtitle_auth_token: string }
-    ) => {
-      if (success && unlockData) {
-        handleEpisodeUnlocked(currentIndex, unlockData);
-        const vid = episodes[currentIndex]?.vid;
-        // add strategy list for prerender and preload
-        addStrategyList([{ ...unlockData, vid, vip: false }]);
-      }
-      setShowVipModal(false);
-    },
-    [currentIndex, episodes, handleEpisodeUnlocked]
-  );
-
-  // Handle multiple episodes unlock success
-  const handleUnlockMultipleSuccess = useCallback(
-    (
-      unlockDataList: {
-        video_model: string;
-        subtitle_auth_token: string;
-        vid: string;
-      }[]
-    ) => {
-      setShowUnlockMultiple(false);
-      // Immediately close VIP modal to avoid re-display
-      setShowVipModal(false);
-
-      unlockDataList.forEach((unlockData) => {
-        const episodeIndex = episodes.findIndex(
-          (ep) => ep.vid === unlockData.vid
-        );
-        if (episodeIndex !== undefined && episodeIndex >= 0) {
-          handleEpisodeUnlocked(episodeIndex, {
-            video_model: unlockData.video_model,
-            subtitle_auth_token: unlockData.subtitle_auth_token,
-          });
-        }
-      });
-      // add strategy list for prerender and preload
-      addStrategyList(unlockDataList.map((item) => ({ ...item, vip: false })));
-    },
-    [episodes, handleEpisodeUnlocked]
-  );
-
   // Create viewability config callback pairs once per mounted list, including Fast Refresh.
   const viewabilityConfigCallbackPairs = useRef(
     [
@@ -488,27 +447,6 @@ export default function DramaPlayer() {
       }, delay);
     },
     [currentIndex]
-  );
-
-  // Handle scroll distance limit
-  const handleScrollBeginDrag = useCallback((event: any) => {
-    setScrollStartY(event.nativeEvent.contentOffset.y);
-  }, []);
-
-  const handleScrollEndDrag = useCallback(
-    (event: any) => {
-      const scrollEndY = event.nativeEvent.contentOffset.y;
-      const scrollDistance = Math.abs(scrollEndY - scrollStartY);
-      const isScrollingDown = scrollEndY > scrollStartY;
-
-      // Trigger scroll pre-render when scrolling down
-      if (isScrollingDown && scrollDistance > 50) {
-        setShouldTriggerScrollPreRender(true);
-        // Reset the flag after a short delay
-        setTimeout(() => setShouldTriggerScrollPreRender(false), 100);
-      }
-    },
-    [scrollStartY]
   );
 
   // Ensure at most one item moves per gesture and snap to start
@@ -635,7 +573,6 @@ export default function DramaPlayer() {
             onSpeedChange={setPlaybackSpeed}
             dramaVideoOrientation={dramaVideoOrientation}
             onEpisodeSelect={handleEpisodeSelect}
-            shouldTriggerScrollPreRender={shouldTriggerScrollPreRender}
             onFullscreen={handleFullscreenFreeze}
             onDidFinish={handleVideoFinish}
             onError={(error) => {
@@ -660,7 +597,6 @@ export default function DramaPlayer() {
       playbackSpeed,
       dramaVideoOrientation,
       handleEpisodeSelect,
-      shouldTriggerScrollPreRender,
       handleFullscreenFreeze,
       handleVideoFinish,
       castController,
@@ -701,7 +637,7 @@ export default function DramaPlayer() {
     <View style={styles.container}>
       {!isRemotePlaybackActive && (
         <View style={[styles.titleBar, { top: insets.top }]}>
-          <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+          <TouchableOpacity onPress={handleBackPress} style={styles.backButton} accessibilityRole="button" accessibilityLabel="Back">
             <SvgIcon
               name="chevron-left"
               style={styles.backIcon}
@@ -733,14 +669,42 @@ export default function DramaPlayer() {
         bounces={false}
         overScrollMode="never"
         viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
-        onScrollBeginDrag={handleScrollBeginDrag}
-        onScrollEndDrag={handleScrollEndDrag}
         onMomentumScrollEnd={handleMomentumScrollEnd}
         pagingEnabled={!isTransitioningOrientation}
         removeClippedSubviews={!isTransitioningOrientation}
         scrollEnabled={!isLandscape && !isRemotePlaybackActive && !isSeeking}
         scrollEventThrottle={16}
       />
+
+      {/* Locked episode: unlock with coins */}
+      {!isRemotePlaybackActive && episodes[currentIndex]?.vip && episodes[currentIndex]?.playback && (
+        <UnlockSheet
+          key={episodes[currentIndex].vid}
+          series={dramaId}
+          episode={episodes[currentIndex].order}
+          coins={episodes[currentIndex].coins ?? 0}
+          onUnlocked={(numbers) => setLocked(numbers, false)}
+          onDismiss={() => router.back()}
+        />
+      )}
+
+      {ratingCard && (
+        <View style={[autoToastStyles.rating, { top: insets.top + 56 }]} pointerEvents="none" accessibilityLiveRegion="polite">
+          <Text style={autoToastStyles.ratingText}>{ratingCard}</Text>
+        </View>
+      )}
+
+      {/* Automatic unlock: what was charged, with Undo for a few seconds */}
+      {autoNotice && (
+        <View style={[autoToastStyles.toast, { bottom: insets.bottom + 72 }]}>
+          <Text style={autoToastStyles.text}>
+            Episode {autoNotice.episode} unlocked, {autoNotice.coins} coins.
+          </Text>
+          <TouchableOpacity onPress={undoAutoUnlock} accessibilityRole="button">
+            <Text style={autoToastStyles.undo}>Undo</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Episode Selector Modal */}
       <EpisodeSelectorModal
@@ -751,49 +715,6 @@ export default function DramaPlayer() {
         onClose={() => setShowEpisodeSelector(false)}
         dramaTitle={dramaTitle}
         dramaCoverUrl={dramaCoverUrl}
-        dramaId={dramaId}
-        onEpisodeUnlocked={handleEpisodeUnlocked}
-        onUnlockAllPress={() => {
-          // Close other modals
-          setShowEpisodeSelector(false);
-          setShowVipModal(false);
-          // Show unlock all episodes modal
-          setShowUnlockMultiple(true);
-        }}
-      />
-
-      {/* VIP Unlock Modal */}
-      <VipUnlockModal
-        visible={!isRemotePlaybackActive && showVipModal}
-        onClose={() => setShowVipModal(false)}
-        onWatchAd={handleVipUnlock}
-        onUnlockAll={() => {
-          // Close VIP modal
-          setShowVipModal(false);
-          // Show unlock all episodes modal
-          setShowUnlockMultiple(true);
-        }}
-        episodeNumber={currentIndex + 1}
-        dramaId={dramaId}
-        episodeVid={episodes[currentIndex]?.vid || ""}
-      />
-
-      {/* Unlock Multiple Episodes Modal */}
-      <UnlockMultipleModal
-        visible={!isRemotePlaybackActive && showUnlockMultiple}
-        onClose={() => {
-          setShowUnlockMultiple(false);
-          // After closing, if current episode is VIP, show VIP modal again
-          if (episodes.length > 0 && episodes[currentIndex]?.vip) {
-            setTimeout(() => {
-              setShowVipModal(true);
-            }, 100);
-          }
-        }}
-        onUnlockSuccess={handleUnlockMultipleSuccess}
-        dramaTitle={dramaTitle}
-        dramaCoverUrl={dramaCoverUrl}
-        allEpisodes={episodes.map((ep) => ({ vid: ep.vid, vip: ep.vip }))}
         dramaId={dramaId}
       />
 
@@ -807,3 +728,23 @@ export default function DramaPlayer() {
     </View>
   );
 }
+
+const autoToastStyles = StyleSheet.create({
+  toast: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    zIndex: 600,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#262626",
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  rating: { position: "absolute", left: 16, zIndex: 550, backgroundColor: "rgba(0,0,0,0.7)", borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: "#FFFFFF" },
+  ratingText: { color: "#FFFFFF", fontSize: 13, fontWeight: "700" },
+  text: { color: "#FFFFFF", fontSize: 14, flex: 1 },
+  undo: { color: "#7DB2FF", fontSize: 14, fontWeight: "700", paddingLeft: 16 },
+});

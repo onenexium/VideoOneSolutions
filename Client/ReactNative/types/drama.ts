@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 // 短剧频道数据模型
 export interface DramaChannelMeta {
   dramaId: string;
@@ -18,6 +15,14 @@ export interface DramaChannelData {
   trending: DramaChannelMeta[];
   new: DramaChannelMeta[];
   recommend: DramaChannelMeta[];
+  /** Rail keys behind the sections, for "See all" (GET /v1/rails/{key}); absent for the mock catalogue. */
+  railKeys?: { trending?: string; new?: string };
+}
+
+/** One page of series cards (a rail or Browse); `nextCursor` is null at the end. */
+export interface DramaCardPage {
+  items: DramaChannelMeta[];
+  nextCursor: string | null;
 }
 
 // 短剧列表项组件属性
@@ -45,37 +50,27 @@ export interface DramaListProps {
   type: "trending" | "new" | "recommend";
 }
 
-// API响应数据结构
-export interface DramaApiResponse {
-  code: number;
-  message: string;
-  response: {
-    loop: DramaApiItem[];
-    trending: DramaApiItem[];
-    new: DramaApiItem[];
-    recommend: DramaApiItem[];
-  };
+/** Identifies an episode on ott-api so a playback session can be opened for it. */
+export interface PlaybackRef {
+  series: string; // series short ID
+  number: number; // episode number
+  language: string; // language version, e.g. "hi"
 }
 
-// API返回的原始数据项
-export interface DramaApiItem {
-  drama_id: string;
-  drama_title: string;
-  drama_play_times: number;
-  drama_cover_url: string;
-  new_release: boolean;
-  drama_length: number;
-  drama_video_orientation: number;
+/** One playable rendition of an episode (an HLS URL, or a specific quality). */
+export interface PlaybackSource {
+  quality: string;
+  url: string;
 }
 
-// 剧集数据结构
+// Episode data
 export interface DramaEpisode {
   vid: string;
   drama_id: string;
   caption: string;
   duration: number;
   cover_url: string;
-  video_model: string;
+  sources: PlaybackSource[];
   play_times: number;
   subtitle: string;
   create_time: string;
@@ -87,8 +82,14 @@ export interface DramaEpisode {
   width: number;
   order: number;
   display_type: number;
-  subtitle_auth_token: string;
+  /** Locked for this viewer: it costs coins and has not been unlocked. */
   vip: boolean;
+  /** What it costs in coins; 0 or absent when free. */
+  coins?: number;
+  /** This viewer liked it. */
+  liked?: boolean;
+  /** Set for episodes served by ott-api: the URL comes from a playback session. */
+  playback?: PlaybackRef;
 }
 
 // Feed流相关类型定义
@@ -108,7 +109,7 @@ export interface VideoMeta {
   caption: string;
   duration: number;
   cover_url: string;
-  video_model: string;
+  sources: PlaybackSource[];
   play_times: number;
   subtitle: string;
   create_time: string;
@@ -120,152 +121,14 @@ export interface VideoMeta {
   width: number;
   order: number;
   display_type: number;
-  subtitle_auth_token: string;
   vip: boolean;
+  /** Set for episodes served by ott-api: the URL comes from a playback session. */
+  playback?: PlaybackRef;
 }
 
 export interface FeedItem {
   drama_meta: DramaMeta;
   video_meta: VideoMeta;
-}
-
-export interface FeedResponse {
-  message_type: string;
-  code: number;
-  request_id: string;
-  message: string;
-  timestamp: number;
-  response: FeedItem[];
-  responseMetadata: {
-    requestId: string;
-    action: string;
-    version: string;
-    service: string;
-    region: string;
-  };
-}
-
-export interface IVolume {
-  Loudness: number;
-  Peak: number;
-}
-
-/** {zh}
- * @hidden
- */
-export interface IPlayInfoListItem {
-  BackupPlayUrl: string;
-  BackupUrlExpire: string;
-  BarrageMaskOffset: string;
-  Bitrate: number;
-  CheckInfo: string;
-  Codec: string;
-  Definition: string;
-  Duration: number;
-  FileId: string;
-  FileType: string;
-  Format: string;
-  Height: number;
-  IndexRange: string;
-  InitRange: string;
-  KeyFrameAlignment: string;
-  LogoType: string;
-  MainPlayUrl: string;
-  MainUrlExpire: string;
-  Md5: string;
-  PlayAuth: string;
-  PlayAuthId: string;
-  Quality: string;
-  Size: number;
-  Volume?: number;
-  Width: number;
-  DrmType?: string;
-}
-
-export interface ISubtitleInfoList {
-  CreateTime: string;
-  FileId: string;
-  Format: string;
-  Language: string;
-  LanguageId: number;
-  Source: string;
-  Status: string;
-  StoreUri: string;
-  SubtitleId: string;
-  SubtitleUrl: string;
-  Tag: string;
-  Title: string;
-  Version: string;
-  Vid: string;
-}
-
-export interface IThumbInfoItem {
-  CaptureNum: number;
-  CellHeight: number;
-  CellWidth: number;
-  Format: string;
-  ImgXLen: number;
-  ImgYLen: number;
-  Interval: number;
-  StoreUrls: string[];
-}
-
-export interface IBarrageMaskInfo {
-  Version: string;
-  BarrageMaskUrl: string;
-  FileId: string;
-  FileSize: number;
-  FileHash: string;
-  UpdatedAt: string;
-  Bitrate: number;
-  HeadLen: number;
-}
-
-interface DashAdaptiveInfo {
-  AdaptiveType: string;
-  BackupPlayUrl: string;
-  MainPlayUrl: string;
-}
-
-export interface ABRInfo {
-  AbrFormat: string;
-  BackupPlayUrl: string;
-  MainPlayUrl: string;
-}
-
-export interface DramaVideoModel {
-  Vid: string;
-  AdaptiveInfo?: DashAdaptiveInfo;
-  AdaptiveBitrateStreamingInfo?: ABRInfo;
-  BarrageMaskInfo?: IBarrageMaskInfo;
-  BarrageMaskUrl: string;
-  Duration: number;
-  EnableAdaptive: boolean;
-  FileType: string;
-  PlayInfoList: IPlayInfoListItem[];
-  PosterUrl: string;
-  Status: number;
-  SubtitleInfoList: ISubtitleInfoList[];
-  ThumbInfoList: IThumbInfoItem[];
-  TotalCount: number;
-  Version: number;
-}
-
-// 剧集列表API响应
-export interface DramaListApiResponse {
-  message_type: string;
-  code: number;
-  request_id: string;
-  message: string;
-  timestamp: number;
-  response: DramaEpisode[];
-  responseMetadata: {
-    requestId: string;
-    action: string;
-    version: string;
-    service: string;
-    region: string;
-  };
 }
 
 // 剧集列表请求参数

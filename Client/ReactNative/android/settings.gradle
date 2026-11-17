@@ -34,7 +34,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
 }
 expoAutolinking.useExpoModules()
 
-rootProject.name = 'video-one-rn'
+rootProject.name = 'ott-mobile'
 
 expoAutolinking.useExpoVersionCatalog()
 

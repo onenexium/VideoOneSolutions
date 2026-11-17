@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import SvgIcon from "@/components/ui/SvgIcon";
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
@@ -60,6 +57,9 @@ const LikeButton: React.FC<LikeButtonProps> = ({
       style={styles.interactionButton}
       onPress={handleLikePress}
       activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={isLiked ? "Unlike" : "Like"}
+      accessibilityState={{ selected: isLiked }}
     >
       <View style={styles.interactionButtonContainer}>
         {/* Like animation - use opacity to control show/hide */}

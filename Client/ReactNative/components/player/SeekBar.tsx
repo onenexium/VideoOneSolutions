@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, StyleSheet, type GestureResponderEvent } from "react-native";
 import * as Progress from "react-native-progress";

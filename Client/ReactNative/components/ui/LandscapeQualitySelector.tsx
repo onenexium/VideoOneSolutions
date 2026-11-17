@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import SvgIcon from "@/components/ui/SvgIcon";
 import React, { useState, useCallback } from "react";
 import {
@@ -11,16 +8,16 @@ import {
   Modal,
   Animated,
 } from "react-native";
-import { IPlayInfoListItem } from "../../types/drama";
+import { PlaybackSource } from "../../types/drama";
 
 interface LandscapeQualitySelectorProps {
-  playInfoList: IPlayInfoListItem[];
+  sources: PlaybackSource[];
   currentQuality: string;
-  onQualityChange: (quality: string, playInfo: IPlayInfoListItem) => void;
+  onQualityChange: (quality: string, playInfo: PlaybackSource) => void;
 }
 
 const LandscapeQualitySelector: React.FC<LandscapeQualitySelectorProps> = ({
-  playInfoList,
+  sources,
   currentQuality,
   onQualityChange,
 }) => {
@@ -61,8 +58,8 @@ const LandscapeQualitySelector: React.FC<LandscapeQualitySelectorProps> = ({
     });
   }, [fadeAnim, slideAnim]);
 
-  const handleQualitySelect = (playInfo: IPlayInfoListItem) => {
-    onQualityChange(playInfo.Definition, playInfo);
+  const handleQualitySelect = (playInfo: PlaybackSource) => {
+    onQualityChange(playInfo.quality, playInfo);
     hideModal();
   };
 
@@ -114,12 +111,12 @@ const LandscapeQualitySelector: React.FC<LandscapeQualitySelectorProps> = ({
 
             {/* Quality options */}
             <View style={styles.optionsContainer}>
-              {playInfoList.map((playInfo) => (
+              {sources.map((playInfo) => (
                 <TouchableOpacity
-                  key={playInfo.Definition}
+                  key={playInfo.quality}
                   style={[
                     styles.qualityOption,
-                    currentQuality === playInfo.Definition &&
+                    currentQuality === playInfo.quality &&
                       styles.qualityOptionActive,
                   ]}
                   onPress={() => handleQualitySelect(playInfo)}
@@ -127,14 +124,11 @@ const LandscapeQualitySelector: React.FC<LandscapeQualitySelectorProps> = ({
                   <Text
                     style={[
                       styles.qualityOptionText,
-                      currentQuality === playInfo.Definition &&
+                      currentQuality === playInfo.quality &&
                         styles.qualityOptionTextActive,
                     ]}
                   >
-                    {playInfo.Definition}
-                  </Text>
-                  <Text style={styles.qualityOptionSubtext}>
-                    {playInfo.Width}×{playInfo.Height}
+                    {playInfo.quality}
                   </Text>
                 </TouchableOpacity>
               ))}

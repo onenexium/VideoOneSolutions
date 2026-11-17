@@ -1,8 +1,4 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 // UI components
-export { default as AdComponent } from "./AdComponent";
 export { default as EpisodeSelector } from "./EpisodeSelector";
 export { default as HomeCard } from "./HomeCard";
 export { default as LandscapeEpisodeSelector } from "./LandscapeEpisodeSelector";

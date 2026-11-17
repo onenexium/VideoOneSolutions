@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import React, { memo } from "react";
 import { StyleSheet, type ImageStyle, type StyleProp } from "react-native";
 import type { SvgProps } from "react-native-svg";

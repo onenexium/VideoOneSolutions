@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import SvgIcon from "@/components/ui/SvgIcon";
 import PlayingIcon from "@/components/ui/PlayingIcon";
 import { Image } from "expo-image";
@@ -116,6 +113,9 @@ const EpisodeSelectorModal: React.FC<EpisodeSelectorModalProps> = ({
         ]}
         onPress={() => onEpisodeSelect(index)}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={`Episode ${item.order}${isLocked ? ", locked" : ""}`}
+        accessibilityState={{ selected: isCurrentEpisode }}
       >
         <Text
           style={[

@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import React, { useEffect } from "react";
 import {
   View,
@@ -8,20 +5,10 @@ import {
   FlatList,
   SafeAreaView,
   Text,
-  Platform,
 } from "react-native";
 import { Image } from "expo-image";
 import { HomeCard, UserAvatar } from "@/components";
 import { HOME_POSTER_CONFIG } from "@/constants/HomeConstants";
-import {
-  initEnv,
-  enableEngineStrategy,
-  StrategyType,
-  StrategyScene,
-  setActiveAudioSession,
-  setupLogger,
-  LogLevel,
-} from "../utils/playerConfig";
 import { UserService } from "@/services/userService";
 
 export default function HomeScreen() {
@@ -35,34 +22,6 @@ export default function HomeScreen() {
       }
     };
 
-    const initSDK = async () => {
-      await initEnv({
-        AppID: "573848",
-        AppName: "VideoOneRN",
-        AppVersion: "1.0.0",
-        AppChannel: Platform.select({
-          android: "GoogleStore",
-          ios: "AppStore",
-          default: "AppStore",
-        }),
-        PackageName: "com.byteplus.videoone.rn",
-        BundleID: "com.byteplus.videoone.rn",
-        LicenseUri: Platform.select({
-          android: "assets:///ttsdk.lic",
-          ios: "ttsdk.lic",
-          default: "",
-        }),
-        MaxCacheSize: 300 * 1024 * 1024,
-        UserUniqueID: "video_one_user",
-        OpenLog: true,
-      });
-
-      enableEngineStrategy(StrategyType.Preload, StrategyScene.SmallVideo);
-      enableEngineStrategy(StrategyType.PreRender, StrategyScene.SmallVideo);
-      setActiveAudioSession(true);
-      // setupLogger({level: LogLevel.INFO});
-    };
-    initSDK();
     initializeUser();
   }, []);
 
@@ -83,13 +42,13 @@ export default function HomeScreen() {
               source={require("@/assets/images/home/logo.png")}
               style={styles.logo}
             />
-            <Text style={styles.title}>VideoOne Center</Text>
+            <Text style={styles.title}>Onenexium</Text>
           </View>
           <UserAvatar size={30} />
         </View>
 
         <Text style={styles.welcomeText}>
-          Welcome to the VideoOne Demo Center! Please select the scene of
+          Welcome to Onenexium! Please select the scene of
           interest.
         </Text>
 

@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import SvgIcon from "@/components/ui/SvgIcon";
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
@@ -41,6 +38,8 @@ const FeedCard: React.FC<FeedCardProps> = ({ feedItem, onPress }) => {
         <TouchableOpacity
           style={styles.closeButton}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
           onPress={handleClose}
         >
           <SvgIcon
@@ -54,6 +53,8 @@ const FeedCard: React.FC<FeedCardProps> = ({ feedItem, onPress }) => {
           {/* Top content area */}
           <TouchableOpacity
             style={styles.topContent}
+            accessibilityRole="button"
+            accessibilityLabel={feedItem.drama_meta.drama_title}
             onPress={() => onPress(feedItem)}
             activeOpacity={0.8}
           >
@@ -88,6 +89,8 @@ const FeedCard: React.FC<FeedCardProps> = ({ feedItem, onPress }) => {
           <TouchableOpacity
             style={styles.playButton}
             onPress={() => onPress(feedItem)}
+            accessibilityRole="button"
+            accessibilityLabel="Play now"
             activeOpacity={0.8}
           >
             <Text style={styles.playButtonText}>Play Now</Text>

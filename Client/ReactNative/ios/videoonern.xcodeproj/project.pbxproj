@@ -16,7 +16,6 @@
 		B7D87F2E63B53E02AF58953A /* libPods-videoonern.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE435CFC5FC0E1382512C55 /* libPods-videoonern.a */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		F76C939DA0474EE5A6D6FAF3 /* ttsdk.lic in Resources */ = {isa = PBXBuildFile; fileRef = B64ABDFC24C348749C5B4FA5 /* ttsdk.lic */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,7 +27,6 @@
 		8C4AA2202D43C91000A1B2C3 /* AirPlayRelay.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AirPlayRelay.m; path = videoonern/AirPlayRelay.m; sourceTree = "<group>"; };
 		8C4AA2222D43C91000A1B2C3 /* AirPlayRoutePickerViewManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AirPlayRoutePickerViewManager.m; path = videoonern/AirPlayRoutePickerViewManager.m; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = videoonern/SplashScreen.storyboard; sourceTree = "<group>"; };
-		B64ABDFC24C348749C5B4FA5 /* ttsdk.lic */ = {isa = PBXFileReference; lastKnownFileType = text; name = ttsdk.lic; path = videoonern/ttsdk.lic; sourceTree = SOURCE_ROOT; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		D768ECC180FABE6479A8E8F8 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-videoonern/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -61,7 +59,6 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				B64ABDFC24C348749C5B4FA5 /* ttsdk.lic */,
 				EF52EAFB087ADB28FE3E5AF1 /* PrivacyInfo.xcprivacy */,
 			);
 			name = videoonern;
@@ -204,7 +201,6 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				F76C939DA0474EE5A6D6FAF3 /* ttsdk.lic in Resources */,
 				7ABE1E74BDB6B63600F95EB6 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -234,42 +230,10 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-videoonern/Pods-videoonern-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/BMF/TTSDKBMF.framework/TTSDKBMF",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/Core/TTSDKCore.framework/TTSDKCore",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/Player/TTSDKPlayer.framework/TTSDKPlayer",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/PlayerCore/Normal/TTSDKPlayerCoreNormal.framework/TTSDKPlayerCoreNormal",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/Reachability/TTSDKReachability.framework/TTSDKReachability",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/SSL/ttboringssl.framework/ttboringssl",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/SSL/ttcrypto.framework/ttcrypto",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/TTFFmpeg/Normal/TTFFmpeg.framework/TTFFmpeg",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/TTFFmpeg/Normal/TTSDKTTFFmpegNormal.framework/TTSDKTTFFmpegNormal",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/Tools/TTSDKTools.framework/TTSDKTools",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/TopSignature/TTSDKTopSignature.framework/TTSDKTopSignature",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/VCN/libvcn.framework/libvcn",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/VCN/TTSDKVCN.framework/TTSDKVCN",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/VolcLog/TTSDKVolcLog.framework/TTSDKVolcLog",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/TTSDKFramework/VolcLog/VolcBaseLog.framework/VolcBaseLog",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/VolcApiEngine/VolcApiEngine.framework/VolcApiEngine",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermesvm.framework/hermesvm",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TTSDKBMF.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TTSDKCore.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TTSDKPlayer.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TTSDKPlayerCoreNormal.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TTSDKReachability.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ttboringssl.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ttcrypto.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TTFFmpeg.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TTSDKTTFFmpegNormal.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TTSDKTools.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TTSDKTopSignature.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libvcn.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TTSDKVCN.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TTSDKVolcLog.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/VolcBaseLog.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/VolcApiEngine.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermesvm.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -318,12 +282,6 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/React-Core_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-cxxreact/React-cxxreact_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/SDWebImage/SDWebImage.bundle",
-				"${PODS_ROOT}/TTSDKFramework/TTSDKFramework/TTSDKBMF/Resources/hydra.metallib",
-				"${PODS_ROOT}/TTSDKFramework/TTSDKFramework/TTSDKBMF/Resources/bmf_hydra",
-				"${PODS_ROOT}/TTSDKFramework/TTSDKFramework/TTSDKPlayer/Resources/TTSDKPlayer.bundle",
-				"${PODS_ROOT}/TTSDKFramework/TTSDKFramework/TTSDKPlayerCoreNormal/Resources/processor.metallib",
-				"${PODS_ROOT}/TTSDKFramework/TTSDKFramework/TTSDKPlayerCoreNormal/Resources/ttplayer.metallib",
-				"${PODS_ROOT}/TTSDKFramework/TTSDKFramework/TTSDKPlayerCoreNormal/Resources/ttplayer_sim.metallib",
 				"${PODS_CONFIGURATION_BUILD_DIR}/boost/boost_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/expo-dev-launcher/EXDevLauncher.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/expo-dev-menu/EXDevMenu.bundle",
@@ -353,12 +311,6 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-Core_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-cxxreact_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SDWebImage.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/hydra.metallib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/bmf_hydra",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/TTSDKPlayer.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/processor.metallib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ttplayer.metallib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ttplayer_sim.metallib",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/boost_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXDevLauncher.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXDevMenu.bundle",
@@ -449,10 +401,10 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.byteplus.videoone.rn;
+				PRODUCT_BUNDLE_IDENTIFIER = com.onenexium.ott;
 				PRODUCT_NAME = videoonern;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = BytePlusVideoOneRN;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = OnenexiumOTT;
 				SWIFT_OBJC_BRIDGING_HEADER = "videoonern/videoonern-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -487,10 +439,10 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.byteplus.videoone.rn;
+				PRODUCT_BUNDLE_IDENTIFIER = com.onenexium.ott;
 				PRODUCT_NAME = videoonern;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = BytePlusVideoOneRN;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = OnenexiumOTT;
 				SWIFT_OBJC_BRIDGING_HEADER = "videoonern/videoonern-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

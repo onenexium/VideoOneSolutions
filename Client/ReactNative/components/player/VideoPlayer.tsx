@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import SvgIcon from "@/components/ui/SvgIcon";
 import React, {
   useState,
@@ -19,27 +16,21 @@ import {
   Platform,
 } from "react-native";
 import { Image } from "expo-image";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { DramaEpisode, PlaybackSource } from "@/types/drama";
+import { pickDefaultSource } from "@/utils/dramaUtils";
+import { callPlayer } from "@/utils/safePlayer";
+import { ApiError } from "@/services/api";
+import { setLiked } from "@/services/libraryService";
+import PinPad from "./PinPad";
 import {
-  PlayerViewComponent,
-  initPlayer,
-  createDirectUrlSource,
-  FillModeType,
-  PlaybackState,
-  PlayerLoadState,
-  setView,
-  getPreRenderEngine,
-  getFirstFrameEngine,
-  type TTVideoEngine,
-} from "../../utils/playerConfig";
-import {
-  DramaEpisode,
-  DramaVideoModel,
-  IPlayInfoListItem,
-} from "@/types/drama";
-import { selectBestPlayInfo } from "@/utils/dramaUtils";
+  PlaybackService,
+  type HeartbeatState,
+  type PlaybackSession,
+} from "@/services/playbackService";
 import PlaybackControls from "./PlaybackControls";
 import SeekBar from "./SeekBar";
 import {
@@ -75,9 +66,6 @@ interface VideoPlayerProps {
   onSpeedChange?: (speed: number) => void; // Speed change callback
   onEpisodeSelect?: (index: number) => void; // Episode selection callback
   isFeedTab?: boolean; // Feed tab indicator
-  // Pre-render related props
-  onScrollPreRender?: () => void; // Callback to trigger scroll pre-render
-  shouldTriggerScrollPreRender?: boolean; // Flag to trigger scroll pre-render
   /**
    * Fired whenever the active video URL or quality changes.
    * The parent can use this to supply the correct URL to CastButton.
@@ -110,43 +98,50 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   onSpeedChange,
   onEpisodeSelect,
   isFeedTab = false,
-  onScrollPreRender,
-  shouldTriggerScrollPreRender = false,
   onPlayUrlChange,
   isRemoteCasting = false,
   remoteCastPosition = 0,
 }) => {
   const insets = useSafeAreaInsets();
   const isScreenFocused = useIsFocused();
-  // ensure viewId is unique
-  const viewId = useMemo(
-    () =>
-      `${isFeedTab ? "feed_" : "drama_"}_player_container_${playerIndex}_${
-        episode.vid
-      }`,
-    [isFeedTab, playerIndex, episode.vid],
-  );
 
   // Calculate isActive internally based on playerIndex and currentIndex
   const isActive = useMemo(() => {
     return playerIndex === currentIndex;
   }, [playerIndex, currentIndex]);
 
+  // One expo-video player per list item. It holds no source until the item becomes active,
+  // and drops it again when the item scrolls away.
+  const player = useVideoPlayer(null, (p) => {
+    p.loop = false;
+    p.timeUpdateEventInterval = 0.25;
+    p.keepScreenOnWhilePlaying = true;
+  });
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [duration, setDuration] = useState(episode?.duration || 0);
   const [error, setError] = useState<string | null>(null);
+  // A message from ott-api (e.g. "not entitled") is shown as is; anything else is a network error.
+  const [errorFromApi, setErrorFromApi] = useState(false);
+  // The API asked for the parental PIN: show the PIN pad instead of the error.
+  const [pinRequired, setPinRequired] = useState(false);
   const [showPoster, setShowPoster] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
-  const [canInit, setCanInit] = useState(false);
   const [currentLikeCount, setCurrentLikeCount] = useState(episode?.like || 0);
-  const [isLiked, setIsLiked] = useState(false);
-  const [currentQuality, setCurrentQuality] = useState<string>("720P");
-  const [currentPlayInfo, setCurrentPlayInfo] =
-    useState<IPlayInfoListItem | null>(null);
-  const [playInfoList, setPlayInfoList] = useState<IPlayInfoListItem[]>([]);
+  const [isLiked, setIsLiked] = useState(episode?.liked ?? false);
+  const episodeVidRef = useRef(episode?.vid);
+  episodeVidRef.current = episode?.vid;
+  const [currentQuality, setCurrentQuality] = useState<string>("");
+  const [currentSource, setCurrentSource] = useState<PlaybackSource | null>(
+    null,
+  );
   const [showLoading, setShowLoading] = useState(false);
+  const [availableSources, setAvailableSources] = useState<PlaybackSource[]>(
+    [],
+  );
   const [containerHeight, setContainerHeight] = useState(0);
+  const [retryNonce, setRetryNonce] = useState(0);
   const [currentOrientation, setCurrentOrientation] =
     useState<ScreenOrientation.Orientation>(
       ScreenOrientation.Orientation.PORTRAIT_UP,
@@ -154,13 +149,32 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [screenDimensions, setScreenDimensions] = useState(
     getScreenDimensions(),
   );
-  // Pre-render related state
-  const [hitPreRender, setHitPreRender] = useState(false);
-  const [hitPreRenderFirstFrame, setHitPreRenderFirstFrame] = useState(false);
   const stalledTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentOrientationRef = useRef<ScreenOrientation.Orientation>(
     ScreenOrientation.Orientation.PORTRAIT_UP,
   );
+  const loadGenerationRef = useRef(0);
+  const openGenerationRef = useRef(0);
+  const sessionRef = useRef<PlaybackSession | null>(null);
+  const heartbeatTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const heartbeatSequenceRef = useRef(0);
+  const showLoadingRef = useRef(false);
+  const hasSourceRef = useRef(false);
+  const isPlayingRef = useRef(false);
+  const isActiveRef = useRef(false);
+  const isScreenFocusedRef = useRef(isScreenFocused);
+  const currentTimeRef = useRef(0);
+  const currentPlayUrlRef = useRef<string | undefined>(undefined);
+  const playbackSpeedRef = useRef(playbackSpeed);
+  const startTimeRef = useRef(startTime);
+  const episodeRef = useRef(episode);
+  const airPlaySessionStateRef = useRef<AirPlaySessionState>("idle");
+  const airPlayGenerationRef = useRef(0);
+  const localWasPlayingBeforeAirPlayRef = useRef(false);
+  const localMutedForAirPlayRef = useRef(false);
+  const lastAirPlayResumePositionRef = useRef(0);
+  const androidCastingRef = useRef(false);
+  const androidRemotePositionRef = useRef(0);
 
   // Keep duration in sync with episode metadata
   useEffect(() => {
@@ -170,11 +184,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Notify parent when the video URL changes (quality switch, episode switch, etc.)
   // so the parent can pass the correct URL to CastButton.
   useEffect(() => {
-    if (currentPlayInfo?.MainPlayUrl) {
-      onPlayUrlChange?.(currentPlayInfo.MainPlayUrl, currentTime);
+    if (currentSource?.url) {
+      onPlayUrlChange?.(currentSource.url, currentTime);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPlayInfo?.MainPlayUrl]);
+  }, [currentSource?.url]);
 
   useEffect(() => {
     const initializeOrientation = async () => {
@@ -212,19 +226,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       subscription.remove();
     };
   }, [dramaVideoOrientation]);
-  const playerRef = useRef<TTVideoEngine>(null);
-  const isPlayingRef = useRef(false);
-  const isActiveRef = useRef(false);
-  const isScreenFocusedRef = useRef(isScreenFocused);
-  const currentTimeRef = useRef(0);
-  const currentPlayUrlRef = useRef<string | undefined>(undefined);
-  const airPlaySessionStateRef = useRef<AirPlaySessionState>("idle");
-  const airPlayGenerationRef = useRef(0);
-  const localWasPlayingBeforeAirPlayRef = useRef(false);
-  const localMutedForAirPlayRef = useRef(false);
-  const lastAirPlayResumePositionRef = useRef(0);
-  const androidCastingRef = useRef(false);
-  const androidRemotePositionRef = useRef(0);
 
   const shouldPauseLocalPlayback = useCallback(
     () =>
@@ -243,15 +244,25 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setCurrentLikeCount(episode?.like || 0);
   }, [episode?.like]);
 
+  // The liked state follows the episode (the viewer's likes come with the episode list).
   useEffect(() => {
-    if (playerRef.current && !episode.vip) {
-      playerRef.current.setPlaybackSpeed(playbackSpeed);
+    setIsLiked(episode?.liked ?? false);
+  }, [episode?.vid, episode?.liked]);
+
+  useEffect(() => {
+    playbackSpeedRef.current = playbackSpeed;
+    if (hasSourceRef.current && !episode.vip) {
+      player.playbackRate = playbackSpeed;
     }
-  }, [playbackSpeed, episode.vip]);
+  }, [playbackSpeed, episode.vip, player]);
 
   useEffect(() => {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
+
+  useEffect(() => {
+    showLoadingRef.current = showLoading;
+  }, [showLoading]);
 
   useEffect(() => {
     isActiveRef.current = isActive;
@@ -266,34 +277,351 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }, [currentTime]);
 
   useEffect(() => {
-    currentPlayUrlRef.current = currentPlayInfo?.MainPlayUrl;
-  }, [currentPlayInfo?.MainPlayUrl]);
+    currentPlayUrlRef.current = currentSource?.url;
+  }, [currentSource?.url]);
+
+  useEffect(() => {
+    episodeRef.current = episode;
+  }, [episode]);
 
   useEffect(() => {
     androidRemotePositionRef.current = remoteCastPosition;
   }, [remoteCastPosition]);
+
+  const clearStalledTimer = useCallback(() => {
+    if (stalledTimerRef.current) {
+      clearTimeout(stalledTimerRef.current);
+      stalledTimerRef.current = null;
+    }
+  }, []);
+
+  const stopHeartbeat = useCallback(() => {
+    if (heartbeatTimerRef.current) {
+      clearInterval(heartbeatTimerRef.current);
+      heartbeatTimerRef.current = null;
+    }
+  }, []);
+
+  // Report the position; the API frees the stream slot or revokes the session from this.
+  const sendHeartbeat = useCallback(
+    (forcedState?: HeartbeatState) => {
+      const session = sessionRef.current;
+      if (!session) {
+        return;
+      }
+      const state: HeartbeatState =
+        forcedState ??
+        (!isPlayingRef.current
+          ? "paused"
+          : showLoadingRef.current
+            ? "buffering"
+            : "playing");
+      PlaybackService.heartbeat(
+        session.id,
+        currentTimeRef.current,
+        ++heartbeatSequenceRef.current,
+        state,
+      )
+        .then((ok) => {
+          if (ok || sessionRef.current !== session) {
+            return;
+          }
+          // Revoked: stopped from another device, ended, or out of time.
+          sessionRef.current = null;
+          stopHeartbeat();
+          callPlayer(() => player.pause());
+          isPlayingRef.current = false;
+          setIsPlaying(false);
+          onPlayPause?.(false);
+          setErrorFromApi(true);
+          setError("Playback stopped on this device");
+        })
+        .catch(() => {
+          // A missed heartbeat is retried on the next tick.
+        });
+    },
+    [player, onPlayPause, stopHeartbeat],
+  );
+
+  // End the API session (frees the stream slot). Safe to call when there is none.
+  const endSession = useCallback(() => {
+    stopHeartbeat();
+    const session = sessionRef.current;
+    sessionRef.current = null;
+    if (session) {
+      PlaybackService.end(
+        session.id,
+        currentTimeRef.current,
+        ++heartbeatSequenceRef.current,
+      ).catch(() => {});
+    }
+  }, [stopHeartbeat]);
+
+  // Load a URL into the player and start it (unless a remote device is playing).
+  const loadSource = useCallback(
+    async (url: string, resumeAt: number) => {
+      const generation = ++loadGenerationRef.current;
+      try {
+        await player.replaceAsync({ uri: url });
+        if (generation !== loadGenerationRef.current) {
+          return;
+        }
+        hasSourceRef.current = true;
+        player.playbackRate = playbackSpeedRef.current;
+        if (resumeAt > 0) {
+          player.currentTime = resumeAt;
+        }
+        if (!shouldPauseLocalPlayback()) {
+          player.play();
+          isPlayingRef.current = true;
+          setIsPlaying(true);
+        }
+      } catch (e) {
+        if (generation !== loadGenerationRef.current) {
+          return;
+        }
+        const message = e instanceof Error ? e.message : "Playback error";
+        console.error("VideoPlayer: failed to load source", e);
+        setError(message);
+        onError?.(message);
+      }
+    },
+    [player, shouldPauseLocalPlayback, onError],
+  );
+
+  // Drop the loaded source so inactive list items hold no decoder resources.
+  const releaseSource = useCallback(() => {
+    loadGenerationRef.current++;
+    openGenerationRef.current++;
+    endSession();
+    clearStalledTimer();
+    if (hasSourceRef.current) {
+      hasSourceRef.current = false;
+      try {
+        player.pause();
+        player.replaceAsync(null).catch(() => {});
+      } catch {
+        // player may already be released while unmounting
+      }
+    }
+  }, [player, clearStalledTimer, endSession]);
+
+  // Player events
+  useEffect(() => {
+    const subscriptions = [
+      player.addListener("playingChange", ({ isPlaying: playing }) => {
+        if (!isActiveRef.current || !hasSourceRef.current) {
+          return;
+        }
+        if (playing && shouldPauseLocalPlayback()) {
+          player.muted = true;
+          player.pause();
+          isPlayingRef.current = false;
+          setIsPlaying(false);
+          onPlayPause?.(false);
+          return;
+        }
+        isPlayingRef.current = playing;
+        setIsPlaying(playing);
+        onPlayPause?.(playing);
+        if (!playing) {
+          sendHeartbeat("paused");
+        }
+      }),
+      player.addListener("statusChange", ({ status, error: statusError }) => {
+        if (!isActiveRef.current || !hasSourceRef.current) {
+          return;
+        }
+        if (status === "loading") {
+          // Only show the spinner when buffering lasts a moment
+          clearStalledTimer();
+          stalledTimerRef.current = setTimeout(() => {
+            setShowLoading(true);
+          }, 200);
+        } else {
+          clearStalledTimer();
+          setShowLoading(false);
+        }
+        if (status === "error") {
+          const message = statusError?.message || "Playback error";
+          console.error("VideoPlayer: playback error", message);
+          setError(message);
+          onError?.(message);
+        }
+      }),
+      player.addListener("sourceLoad", ({ duration: loadedDuration }) => {
+        if (loadedDuration > 0) {
+          setDuration(loadedDuration);
+        }
+      }),
+      player.addListener("timeUpdate", ({ currentTime: time }) => {
+        if (!isActiveRef.current || !hasSourceRef.current) {
+          return;
+        }
+        setCurrentTime(time);
+        currentTimeRef.current = time;
+        if (time > 0) {
+          setShowPoster(false);
+          setShowLoading(false);
+        }
+        onProgress?.(time);
+        if (currentPlayUrlRef.current) {
+          onPlayUrlChange?.(currentPlayUrlRef.current, time);
+        }
+      }),
+      player.addListener("playToEnd", () => {
+        if (!isActiveRef.current) {
+          return;
+        }
+        isPlayingRef.current = false;
+        setIsPlaying(false);
+        onPlayPause?.(false);
+        if (!shouldPauseLocalPlayback()) {
+          onDidFinish?.();
+        }
+      }),
+    ];
+
+    return () => {
+      subscriptions.forEach((subscription) =>
+        callPlayer(() => subscription.remove()),
+      );
+    };
+  }, [
+    player,
+    onPlayPause,
+    onError,
+    onProgress,
+    onPlayUrlChange,
+    onDidFinish,
+    shouldPauseLocalPlayback,
+    clearStalledTimer,
+    sendHeartbeat,
+  ]);
+
+  // Resolve what to play: a ready-made source, or a playback session from ott-api.
+  const startPlayback = useCallback(
+    async (target: DramaEpisode) => {
+      const generation = ++openGenerationRef.current;
+      const direct = pickDefaultSource(target);
+      if (direct) {
+        setAvailableSources(target.sources);
+        setCurrentQuality(direct.quality);
+        setCurrentSource(direct);
+        await loadSource(direct.url, startTimeRef.current);
+        return;
+      }
+      if (!target.playback) {
+        const message = "No playable source for this episode";
+        setErrorFromApi(false);
+        setError(message);
+        onError?.(message);
+        return;
+      }
+      try {
+        const session = await PlaybackService.open(target.playback);
+        if (generation !== openGenerationRef.current) {
+          // Scrolled away while the session was opening: give the slot back.
+          PlaybackService.end(session.id, 0, 0).catch(() => {});
+          return;
+        }
+        sessionRef.current = session;
+        heartbeatSequenceRef.current = 0;
+        const source: PlaybackSource = {
+          quality: "Auto",
+          url: session.playlistUrl,
+        };
+        setAvailableSources([source]);
+        setCurrentQuality(source.quality);
+        setCurrentSource(source);
+        stopHeartbeat();
+        heartbeatTimerRef.current = setInterval(
+          () => sendHeartbeat(),
+          Math.max(5, session.heartbeatSeconds) * 1000,
+        );
+        await loadSource(source.url, startTimeRef.current || session.resume);
+      } catch (e) {
+        if (generation !== openGenerationRef.current) {
+          return;
+        }
+        const fromApi = e instanceof ApiError;
+        setPinRequired(fromApi && e.type.endsWith("pin-required"));
+        const message = e instanceof Error ? e.message : "Playback error";
+        console.error("VideoPlayer: failed to open playback session", e);
+        setErrorFromApi(fromApi);
+        setError(message);
+        onError?.(message);
+      }
+    },
+    [loadSource, sendHeartbeat, stopHeartbeat, onError],
+  );
+
+  // Load when this item becomes the active one, release when it stops being active.
+  useEffect(() => {
+    if (!isActive || episode.vip) {
+      releaseSource();
+      setShowPoster(true);
+      setCurrentTime(0);
+      setIsPlaying(false);
+      setError(null);
+      setShowLoading(false);
+      return;
+    }
+
+    setError(null);
+    setErrorFromApi(false);
+    setShowPoster(true);
+    setShowLoading(true);
+    startPlayback(episodeRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive, episode.vid, episode.vip, retryNonce]);
+
+  // Release on unmount
+  useEffect(() => {
+    return () => {
+      loadGenerationRef.current++;
+      openGenerationRef.current++;
+      if (heartbeatTimerRef.current) {
+        clearInterval(heartbeatTimerRef.current);
+        heartbeatTimerRef.current = null;
+      }
+      const session = sessionRef.current;
+      sessionRef.current = null;
+      if (session) {
+        PlaybackService.end(
+          session.id,
+          currentTimeRef.current,
+          ++heartbeatSequenceRef.current,
+        ).catch(() => {});
+      }
+      if (stalledTimerRef.current) {
+        clearTimeout(stalledTimerRef.current);
+        stalledTimerRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (Platform.OS !== "android" || !isActive || episode.vip) {
       return;
     }
 
-    const pauseLocalForCast = async () => {
-      if (!playerRef.current) {
+    const pauseLocalForCast = () => {
+      if (!hasSourceRef.current) {
         return;
       }
       if (!androidCastingRef.current) {
         androidCastingRef.current = true;
         androidRemotePositionRef.current = currentTimeRef.current;
       }
-      await playerRef.current.pause();
+      player.pause();
       isPlayingRef.current = false;
       setIsPlaying(false);
       onPlayPause?.(false);
     };
 
-    const resumeLocalAfterCast = async () => {
-      if (!androidCastingRef.current || !playerRef.current) {
+    const resumeLocalAfterCast = () => {
+      if (!androidCastingRef.current || !hasSourceRef.current) {
         return;
       }
 
@@ -304,9 +632,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         currentTimeRef.current || 0,
       );
 
-      playerRef.current.seek(resumeTime, () => {});
+      player.currentTime = resumeTime;
       setCurrentTime(resumeTime);
-      await playerRef.current.play();
+      player.play();
       isPlayingRef.current = true;
       setIsPlaying(true);
       onPlayPause?.(true);
@@ -323,6 +651,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     isActive,
     episode.vip,
     onPlayPause,
+    player,
   ]);
 
   useEffect(() => {
@@ -330,14 +659,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       Platform.OS !== "ios" ||
       !isScreenFocused ||
       !isActive ||
-      !currentPlayInfo?.MainPlayUrl ||
+      !currentSource?.url ||
       episode.vip
     ) {
       return;
     }
 
     AirPlayRelay.configureMedia({
-      url: currentPlayInfo.MainPlayUrl,
+      url: currentSource.url,
       startTime: currentTime,
       title: dramaTitle,
       coverUrl: dramaCoverUrl,
@@ -348,7 +677,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }, [
     isScreenFocused,
     isActive,
-    currentPlayInfo?.MainPlayUrl,
+    currentSource?.url,
     currentTime,
     isPlaying,
     dramaTitle,
@@ -379,8 +708,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       airPlayGenerationRef.current = snapshot.generation;
       airPlaySessionStateRef.current = snapshot.state;
 
-      const player = playerRef.current;
-      if (!player) {
+      if (!hasSourceRef.current) {
         return;
       }
 
@@ -392,7 +720,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         if (!localMutedForAirPlayRef.current) {
           localWasPlayingBeforeAirPlayRef.current = isPlayingRef.current;
           localMutedForAirPlayRef.current = true;
-          player.setMuted(true);
+          player.muted = true;
         }
         return;
       }
@@ -400,7 +728,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       if (snapshot.state === "casting") {
         lastAirPlayResumePositionRef.current = snapshot.currentTime;
         if (isPlayingRef.current) {
-          await player.pause();
+          player.pause();
           if (isStaleAirPlayGeneration(snapshot.generation)) {
             return;
           }
@@ -439,9 +767,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           return;
         }
 
-        player.seek(resumeTime, () => {});
+        player.currentTime = resumeTime;
         setCurrentTime(resumeTime);
-        player.setMuted(false);
+        player.muted = false;
         localMutedForAirPlayRef.current = false;
         lastAirPlayResumePositionRef.current = resumeTime;
 
@@ -450,7 +778,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           localWasPlayingBeforeAirPlayRef.current &&
           !isPlayingRef.current
         ) {
-          await player.play();
+          player.play();
           if (isStaleAirPlayGeneration(snapshot.generation)) {
             return;
           }
@@ -491,14 +819,18 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       mounted = false;
       stateSub.remove();
       progressSub.remove();
-      if (localMutedForAirPlayRef.current && playerRef.current) {
-        playerRef.current.setMuted(false);
+      if (localMutedForAirPlayRef.current) {
+        try {
+          player.muted = false;
+        } catch {
+          // player may already be released
+        }
       }
       airPlaySessionStateRef.current = "idle";
       localMutedForAirPlayRef.current = false;
       localWasPlayingBeforeAirPlayRef.current = false;
     };
-  }, [isScreenFocused, isActive, episode.vip, onPlayPause]);
+  }, [isScreenFocused, isActive, episode.vip, onPlayPause, player]);
 
   // Handle app state changes (background/foreground)
   useEffect(() => {
@@ -506,20 +838,20 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       if (
         nextAppState === "background" &&
         isPlayingRef.current &&
-        playerRef.current &&
+        hasSourceRef.current &&
         isActiveRef.current
       ) {
-        playerRef.current.pause();
+        callPlayer(() => player.pause());
         isPlayingRef.current = false;
         onPlayPause?.(false);
       } else if (
         nextAppState === "active" &&
-        playerRef.current &&
+        hasSourceRef.current &&
         isScreenFocusedRef.current &&
         isActiveRef.current &&
         !shouldPauseLocalPlayback()
       ) {
-        playerRef.current.play();
+        callPlayer(() => player.play());
         isPlayingRef.current = true;
       }
     };
@@ -535,393 +867,71 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   useFocusEffect(
     useCallback(() => {
       if (
-        playerRef.current &&
+        hasSourceRef.current &&
         isActiveRef.current &&
         !isPlayingRef.current &&
         !shouldPauseLocalPlayback()
       ) {
-        playerRef.current.play();
+        callPlayer(() => player.play());
       }
 
       return () => {
-        // Native playback may start before its state callback reaches JS.
-        if (playerRef.current) {
-          playerRef.current.pause();
+        // On unmount expo-video may already have released the native player.
+        if (hasSourceRef.current) {
+          callPlayer(() => player.pause());
           isPlayingRef.current = false;
           setIsPlaying(false);
           onPlayPause?.(false);
         }
       };
-    }, [onPlayPause, shouldPauseLocalPlayback]),
+    }, [player, onPlayPause, shouldPauseLocalPlayback]),
   );
 
-  const videoModel = useMemo(() => {
-    let videoModel = null;
-    if (episode.vip) {
-      return null;
-    }
-    try {
-      videoModel = JSON.parse(episode.video_model) as DramaVideoModel;
-    } catch {
-      return null;
-    }
-    return videoModel;
-  }, [episode.video_model, episode.vip]);
-
-  const initializeQuality = useCallback(
-    (videoModel: DramaVideoModel, selectedPlayInfo: IPlayInfoListItem) => {
-      if (videoModel.PlayInfoList && videoModel.PlayInfoList.length > 0) {
-        setPlayInfoList(videoModel.PlayInfoList);
-        setCurrentQuality(selectedPlayInfo.Definition);
-        setCurrentPlayInfo(selectedPlayInfo);
-      }
-    },
-    [],
-  );
-
-  const setPlayer = useCallback(async () => {
-    if (!playerRef.current && canInit && !episode.vip) {
-      setShowPoster(true);
-      setShowLoading(false);
-
-      if (!videoModel) {
-        setShowLoading(false);
-        return;
-      }
-
-      try {
-        const selectedPlayInfo = selectBestPlayInfo(videoModel, "720p");
-        if (!selectedPlayInfo) {
-          throw new Error("No play info found for this episode");
-        }
-
-        initializeQuality(videoModel, selectedPlayInfo);
-
-        const source = createDirectUrlSource({
-          vid: episode.vid,
-          url: selectedPlayInfo.MainPlayUrl,
-          cacheKey: episode.vid,
-        });
-
-        const fillMode =
-          dramaVideoOrientation !== 1
-            ? FillModeType.FillModeAspectFill
-            : FillModeType.FillModeNone;
-
-        // Try to get pre-render engine first
-        const preRenderEngine = getPreRenderEngine(source);
-        if (preRenderEngine && playerIndex !== 0) {
-          console.log(
-            "EngineStrategy: hit pre-render engine",
-            playerIndex,
-            "hitPreRender:",
-            !!preRenderEngine,
-            "playerIndex:",
-            playerIndex,
-          );
-
-          setView(preRenderEngine, viewId, fillMode);
-
-          setShowPoster(false);
-          setShowLoading(false);
-          setHitPreRender(true);
-          playerRef.current = preRenderEngine;
-        } else {
-          const player = await initPlayer({
-            viewId,
-            fillMode,
-          });
-
-          player.setVideoSource(source);
-          setHitPreRender(false);
-          playerRef.current = player;
-        }
-        startTime && playerRef.current.setStartTime(startTime);
-        playerRef.current.setPlaybackSpeed(playbackSpeed);
-
-        // playerRef.current.setIOSOptionForKey(42866, 1);
-        // playerRef.current.setIOSOptionForKey(42627, 1);
-
-        playerRef.current.setListener({
-          onReadyToDisplay() {
-            setShowLoading(false);
-          },
-          onCurrentPlaybackTimeUpdate(currentTime: number) {
-            setCurrentTime(currentTime);
-            currentTimeRef.current = currentTime;
-            if (currentTime > 0) {
-              setShowPoster(false);
-              setShowLoading(false);
-            }
-            onProgress?.(currentTime);
-            if (currentPlayUrlRef.current) {
-              onPlayUrlChange?.(currentPlayUrlRef.current, currentTime);
-            }
-          },
-          onPlaybackStateChanged(
-            engine: TTVideoEngine,
-            playbackState: PlaybackState,
-          ) {
-            // show play button when paused
-            if (playbackState === PlaybackState.PLAYBACK_STATE_PLAYING) {
-              if (shouldPauseLocalPlayback()) {
-                engine.setMuted(true);
-                engine.pause();
-                isPlayingRef.current = false;
-                setIsPlaying(false);
-                onPlayPause?.(false);
-                return;
-              }
-              isPlayingRef.current = true;
-              setIsPlaying(true);
-              onPlayPause?.(true);
-            } else if (playbackState === PlaybackState.PLAYBACK_STATE_PAUSED) {
-              isPlayingRef.current = false;
-              setIsPlaying(false);
-              onPlayPause?.(false);
-            } else {
-              console.log("Unknown playback state:", playbackState);
-            }
-          },
-          onLoadStateChanged(engine: any, state: number) {
-            // Handle stalled state with delay
-            if (state === PlayerLoadState.STALLED) {
-              stalledTimerRef.current = setTimeout(() => {
-                setShowLoading(true);
-              }, 200);
-            } else {
-              // Clear any pending stalled timer
-              if (stalledTimerRef.current) {
-                clearTimeout(stalledTimerRef.current);
-                stalledTimerRef.current = null;
-              }
-
-              // Hide loading for playable and error states
-              if (
-                state === PlayerLoadState.PLAYABLE ||
-                state === PlayerLoadState.ERROR
-              ) {
-                console.log("Setting loading to false for state:", state);
-                setShowLoading(false);
-              }
-            }
-          },
-          onPrepared() {},
-          onError(message: string, code: number) {
-            console.error("VideoPlayer: onError", message, code);
-            setError(message || "Playback error");
-            onError?.(message || "Playback error");
-          },
-          onDidFinish() {
-            setIsPlaying(false);
-            onPlayPause?.(false);
-            // Only trigger onDidFinish callback for the active player
-            if (isActive && !isRemotePlaybackActive()) {
-              onDidFinish?.();
-            }
-          },
-          onCacheChange(key: string, cacheSize: number) {
-            if (cacheSize > 0) {
-              console.log("hit cache may due to preload");
-            }
-          },
-        });
-
-        if (isActive && !shouldPauseLocalPlayback()) {
-          playerRef.current.play();
-          isPlayingRef.current = true;
-          setIsPlaying(true);
-        }
-      } catch (error) {
-        console.error("VideoPlayer: setPlayer error", error);
-      }
-    }
-  }, [
-    canInit,
-    episode.vip,
-    episode.vid,
-    videoModel,
-    initializeQuality,
-    dramaVideoOrientation,
-    playerIndex,
-    startTime,
-    playbackSpeed,
-    isActive,
-    viewId,
-    onProgress,
-    onPlayUrlChange,
-    onPlayPause,
-    onError,
-    onDidFinish,
-    isRemotePlaybackActive,
-    shouldPauseLocalPlayback,
-  ]);
-
-  useEffect(() => {
-    return () => {
-      if (playerRef.current) {
-        playerRef.current.close();
-        playerRef.current = null;
-      }
-      if (stalledTimerRef.current) {
-        clearTimeout(stalledTimerRef.current);
-        stalledTimerRef.current = null;
-      }
-      // Reset pre-render states
-      setHitPreRender(false);
-      setHitPreRenderFirstFrame(false);
-    };
-  }, [episode.vid, playerIndex]);
-
-  useEffect(() => {
-    if (!isActive) {
-      if (playerRef.current) {
-        playerRef.current?.close();
-        playerRef.current = null;
-      }
-      setShowPoster(true);
-      setCurrentTime(0);
-      setIsPlaying(false);
-      setError(null);
-      if (stalledTimerRef.current) {
-        clearTimeout(stalledTimerRef.current);
-        stalledTimerRef.current = null;
-      }
-      setShowLoading(false);
-      // Reset pre-render states when not active
-      setHitPreRender(false);
-      setHitPreRenderFirstFrame(false);
-    } else {
-      setShowLoading(true);
-      if (!episode.vip) {
-        setPlayer();
-      }
-    }
-  }, [canInit, isActive, playerIndex, episode.vip, setPlayer]);
-
-  const handleVideoPress = useCallback(async () => {
-    console.log("handleVideoPress", {
-      isPlaying,
-      showPoster,
-      hasPlayer: !!playerRef.current,
-    });
-    if (isPlaying && playerRef.current) {
-      await playerRef.current.pause();
+  const handleVideoPress = useCallback(() => {
+    if (isPlaying && hasSourceRef.current) {
+      player.pause();
       isPlayingRef.current = false;
       setIsPlaying(false);
     } else if (
       !isPlaying &&
-      playerRef.current &&
+      hasSourceRef.current &&
       !showPoster &&
       !isRemotePlaybackActive()
     ) {
-      await playerRef.current.play();
+      player.play();
       isPlayingRef.current = true;
       setIsPlaying(true);
     } else {
       setShowControls(!showControls);
     }
-  }, [isPlaying, showControls, showPoster, isRemotePlaybackActive]);
+  }, [player, isPlaying, showControls, showPoster, isRemotePlaybackActive]);
 
-  const handlePlayPause = useCallback(async () => {
-    if (isRemotePlaybackActive()) {
+  const handlePlayPause = useCallback(() => {
+    if (isRemotePlaybackActive() || !hasSourceRef.current) {
       return;
     }
-    if (playerRef.current) {
-      if (isPlaying) {
-        await playerRef.current.pause();
-        isPlayingRef.current = false;
-        setIsPlaying(false);
-      } else {
-        await playerRef.current.play();
-        isPlayingRef.current = true;
-        setIsPlaying(true);
-      }
+    if (isPlaying) {
+      player.pause();
+      isPlayingRef.current = false;
+      setIsPlaying(false);
+    } else {
+      player.play();
+      isPlayingRef.current = true;
+      setIsPlaying(true);
     }
-  }, [isPlaying, isRemotePlaybackActive]);
+  }, [player, isPlaying, isRemotePlaybackActive]);
 
   const handleRetry = useCallback(() => {
-    if (playerRef.current) {
-      playerRef.current.close({ stopPip: false });
-      playerRef.current = null;
-    }
-
-    if (stalledTimerRef.current) {
-      clearTimeout(stalledTimerRef.current);
-      stalledTimerRef.current = null;
-    }
-
+    releaseSource();
     setError(null);
+    setErrorFromApi(false);
+    setPinRequired(false);
     setShowLoading(false);
     setShowPoster(true);
     setCurrentTime(0);
     setIsPlaying(false);
-    // Reset pre-render states on retry
-    setHitPreRender(false);
-    setHitPreRenderFirstFrame(false);
-
-    setPlayer();
-  }, [setPlayer]);
-
-  // Scroll-based pre-render logic
-  const handleScrollPreRender = useCallback(async () => {
-    if (
-      canInit &&
-      !episode.vip &&
-      videoModel &&
-      Math.abs(currentIndex - playerIndex) < 2
-    ) {
-      try {
-        const selectedPlayInfo = selectBestPlayInfo(videoModel, "720p");
-        if (!selectedPlayInfo) {
-          console.warn("VideoPlayer: no play info found for scroll pre-render");
-          return;
-        }
-        const source = createDirectUrlSource({
-          vid: episode.vid,
-          url: selectedPlayInfo.MainPlayUrl,
-          cacheKey: episode.vid,
-        });
-
-        const preRenderEngine = getFirstFrameEngine(source);
-        if (preRenderEngine && !hitPreRenderFirstFrame) {
-          console.log(
-            `VideoPlayer: scroll hit first frame pre-render for ${playerIndex}`,
-          );
-          setHitPreRenderFirstFrame(true);
-          setShowPoster(false);
-          const fillMode =
-            dramaVideoOrientation !== 1
-              ? FillModeType.FillModeAspectFill
-              : FillModeType.FillModeNone;
-          await setView(preRenderEngine, viewId, fillMode);
-        } else {
-          console.log(
-            `VideoPlayer: scroll not hit first frame pre-render for ${playerIndex}`,
-          );
-        }
-      } catch (error) {
-        console.warn("VideoPlayer: scroll pre-render error", error);
-      }
-    }
-  }, [
-    canInit,
-    episode.vip,
-    episode.vid,
-    videoModel,
-    currentIndex,
-    playerIndex,
-    hitPreRenderFirstFrame,
-    dramaVideoOrientation,
-    viewId,
-  ]);
-
-  // Trigger scroll pre-render when flag changes
-  useEffect(() => {
-    if (shouldTriggerScrollPreRender) {
-      handleScrollPreRender();
-    }
-  }, [shouldTriggerScrollPreRender, handleScrollPreRender]);
+    setRetryNonce((n) => n + 1);
+  }, [releaseSource]);
 
   const getFullscreenButtonPosition = useCallback(() => {
     if (
@@ -995,23 +1005,30 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const handleSeek = useCallback(
     (targetTime: number) => {
-      if (duration <= 0 || !playerRef.current || !isActive || !isScreenFocused || isRemotePlaybackActive()) {
+      if (
+        duration <= 0 ||
+        !hasSourceRef.current ||
+        !isActive ||
+        !isScreenFocused ||
+        isRemotePlaybackActive()
+      ) {
         return;
       }
       const clampedTime = Math.max(0, Math.min(duration, targetTime));
 
-      playerRef.current.seek(clampedTime, (success: boolean) => {
-        console.log(
-          `VideoPlayer: seek to ${clampedTime}, ${
-            success ? "success" : "failed"
-          }`,
-        );
-      });
+      player.currentTime = clampedTime;
       setCurrentTime(clampedTime);
       currentTimeRef.current = clampedTime;
       onProgress?.(clampedTime);
     },
-    [duration, isActive, isScreenFocused, isRemotePlaybackActive, onProgress],
+    [
+      player,
+      duration,
+      isActive,
+      isScreenFocused,
+      isRemotePlaybackActive,
+      onProgress,
+    ],
   );
 
   const handleLikePress = useCallback(() => {
@@ -1020,9 +1037,19 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       ? currentLikeCount + 1
       : Math.max(0, currentLikeCount - 1);
 
+    // Shown at once; the API is told, and the change is taken back if it cannot be saved.
     setIsLiked(newLikedState);
     setCurrentLikeCount(newCount);
-  }, [isLiked, currentLikeCount]);
+    const ref = episode.playback;
+    const vid = episode.vid;
+    if (ref) {
+      setLiked(ref.series, ref.number, newLikedState).catch(() => {
+        if (episodeVidRef.current !== vid) return; // moved on: nothing here to take back
+        setIsLiked(!newLikedState);
+        setCurrentLikeCount(currentLikeCount);
+      });
+    }
+  }, [isLiked, currentLikeCount, episode.playback, episode.vid]);
 
   const handleLandscapeLikePress = useCallback(() => {
     handleLikePress();
@@ -1033,30 +1060,16 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }, []);
 
   const handleQualityChange = useCallback(
-    async (quality: string, playInfo: IPlayInfoListItem) => {
-      if (!playerRef.current || !currentPlayInfo) {
+    async (quality: string, source: PlaybackSource) => {
+      if (!hasSourceRef.current || !currentSource) {
         return;
       }
-
-      try {
-        const currentTime = await playerRef.current.getCurrentPlaybackTime();
-        const newSource = createDirectUrlSource({
-          url: playInfo.MainPlayUrl,
-          cacheKey: episode.vid,
-        });
-        playerRef.current.setVideoSource(newSource);
-        await playerRef.current.setStartTime(currentTime);
-        if (!shouldPauseLocalPlayback()) {
-          console.warn("handleQualityChange play player", playerIndex);
-          await playerRef.current.play();
-        }
-        setCurrentQuality(quality);
-        setCurrentPlayInfo(playInfo);
-      } catch {
-        // process error
-      }
+      const resumeAt = currentTimeRef.current;
+      setCurrentQuality(quality);
+      setCurrentSource(source);
+      await loadSource(source.url, resumeAt);
     },
-    [currentPlayInfo, episode.vid, playerIndex, shouldPauseLocalPlayback],
+    [currentSource, loadSource],
   );
 
   const styles = useMemo(
@@ -1148,20 +1161,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           justifyContent: "center",
           zIndex: 100,
         },
-        prerenderIndicator: {
-          position: "absolute",
-          top: 50,
-          left: 16,
-          zIndex: 1000,
-          backgroundColor: "rgba(0, 0, 0, 0.7)",
-          paddingHorizontal: 12,
-          paddingVertical: 6,
-          borderRadius: 16,
-        },
-        prerenderText: {
-          fontSize: 12,
-          fontWeight: "bold",
-        },
         touchOverlay: {
           position: "absolute",
           top: 0,
@@ -1175,11 +1174,21 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     [insets.bottom],
   );
 
+  if (error && pinRequired) {
+    return (
+      <View style={styles.errorContainer}>
+        <PinPad onVerified={handleRetry} />
+      </View>
+    );
+  }
+
   if (error) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>
-          Network disconnected, please check and refresh
+          {errorFromApi
+            ? error
+            : "Network disconnected, please check and refresh"}
         </Text>
         <TouchableOpacity onPress={handleRetry} style={styles.retryButton}>
           <SvgIcon name="refresh" style={styles.refreshIcon} />
@@ -1192,14 +1201,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.videoTouchable} onLayout={handleContainerLayout}>
-        <PlayerViewComponent
-          viewId={viewId}
-          onLoad={() => {
-            setCanInit(true);
-            console.log("VideoPlayer: onLoad", playerIndex);
-          }}
-          style={styles.player}
-        />
+        {isActive && !episode.vip && (
+          <VideoView
+            player={player}
+            style={styles.player}
+            contentFit={dramaVideoOrientation !== 1 ? "cover" : "contain"}
+            nativeControls={false}
+            allowsPictureInPicture={false}
+          />
+        )}
 
         {showPoster && (
           <View style={styles.coverContainer} pointerEvents="none">
@@ -1236,7 +1246,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           onCommentPress={handleCommentPress}
           playbackSpeed={playbackSpeed}
           onSpeedChange={onSpeedChange}
-          playInfoList={playInfoList}
+          sources={availableSources}
           currentQuality={currentQuality}
           onQualityChange={handleQualityChange}
           episodes={episodes}
@@ -1250,18 +1260,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           isFeedTab={isFeedTab}
         />
 
-        {/* Pre-render status indicator */}
-        {/*<View style={styles.prerenderIndicator}>*/}
-        {/*  <Text*/}
-        {/*    style={[*/}
-        {/*      styles.prerenderText,*/}
-        {/*      { color: hitPreRender ? "#00ff00" : "#ff4444" },*/}
-        {/*    ]}*/}
-        {/*  >*/}
-        {/*    {hitPreRender ? "✓ 命中预渲染" : "✗ 未命中预渲染"}*/}
-        {/*  </Text>*/}
-        {/*</View>*/}
-
         {!(duration < 60 && dramaVideoOrientation !== 1) && (
           <View
             style={
@@ -1273,7 +1271,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             <SeekBar
               duration={duration}
               currentTime={currentTime}
-              disabled={!isActive || !isScreenFocused || isRemotePlaybackActive() || !playerRef.current}
+              disabled={
+                !isActive ||
+                !isScreenFocused ||
+                isRemotePlaybackActive() ||
+                !hasSourceRef.current
+              }
               onSeek={handleSeek}
               onSeekingChange={onSeekingChange}
             />

@@ -73,7 +73,7 @@ function mountProgress() {
         styles: {},
         isActive: true, isScreenFocused: true,
         isRemotePlaybackActive: () => false,
-        playerRef: { current: {} },
+        hasSourceRef: { current: true },
         handleSeek: time => seeks.push(time),
         onSeekingChange: active => locks.push(active),
         ...overrides,

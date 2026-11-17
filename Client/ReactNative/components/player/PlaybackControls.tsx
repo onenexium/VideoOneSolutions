@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import SvgIcon from "@/components/ui/SvgIcon";
 import React, { useEffect, useRef, useCallback } from "react";
 import {
@@ -18,7 +15,7 @@ import LandscapeSpeedSelector from "../ui/LandscapeSpeedSelector";
 import LandscapeQualitySelector from "../ui/LandscapeQualitySelector";
 import LandscapeEpisodeSelector from "../ui/LandscapeEpisodeSelector";
 import UserAvatar from "../shared/UserAvatar";
-import { DramaEpisode, IPlayInfoListItem } from "../../types/drama";
+import { DramaEpisode, PlaybackSource } from "../../types/drama";
 
 interface PlaybackControlsProps {
   // Basic state
@@ -45,9 +42,9 @@ interface PlaybackControlsProps {
   onSpeedChange?: (speed: number) => void;
 
   // Quality control
-  playInfoList: IPlayInfoListItem[];
+  sources: PlaybackSource[];
   currentQuality: string;
-  onQualityChange: (quality: string, playInfo: IPlayInfoListItem) => void;
+  onQualityChange: (quality: string, playInfo: PlaybackSource) => void;
 
   // Episode selection control
   episodes: DramaEpisode[];
@@ -83,7 +80,7 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
   onCommentPress,
   playbackSpeed,
   onSpeedChange,
-  playInfoList,
+  sources,
   currentQuality,
   onQualityChange,
   episodes,
@@ -176,7 +173,7 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
         pointerEvents="box-none"
       >
         {showPlayButton && (
-          <TouchableOpacity style={styles.playButton} onPress={onPlayPause}>
+          <TouchableOpacity style={styles.playButton} onPress={onPlayPause} accessibilityRole="button" accessibilityLabel="Play">
             <SvgIcon
               name="play"
               style={styles.playButtonIcon}
@@ -199,6 +196,8 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
           <TouchableOpacity
             style={styles.fullscreenButton}
             onPress={onFullscreenPress}
+            accessibilityRole="button"
+            accessibilityLabel="Full screen"
             activeOpacity={0.8}
           >
             <View style={styles.fullscreenIcon}>
@@ -222,6 +221,8 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
               <TouchableOpacity
                 style={styles.landscapeControlButtonContainer}
                 onPress={onLikePress}
+                accessibilityRole="button"
+                accessibilityLabel={isLiked ? "Unlike" : "Like"}
               >
                 <SvgIcon
                   name={isLiked ? "heart-filled" : "heart-outline"}
@@ -239,6 +240,8 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
               <TouchableOpacity
                 style={styles.landscapeControlButtonContainer}
                 onPress={onCommentPress}
+                accessibilityRole="button"
+                accessibilityLabel="Episodes"
               >
                 <SvgIcon
                   name="comment-outline"
@@ -261,7 +264,7 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
 
             {/* Quality button */}
             <LandscapeQualitySelector
-              playInfoList={playInfoList}
+              sources={sources}
               currentQuality={currentQuality}
               onQualityChange={onQualityChange}
             />
@@ -303,6 +306,8 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
             style={styles.interactionButton}
             onPress={onCommentPress}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Episodes"
           >
             <View style={styles.interactionButtonContainer}>
               <SvgIcon

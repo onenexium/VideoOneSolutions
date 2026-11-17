@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 // 图片资源映射
 export const IMAGE_ASSETS = {
   // Home poster images
@@ -16,7 +13,6 @@ export const IMAGE_ASSETS = {
   "home/back": require("@/assets/images/home/back.png"),
 
   // Common images
-  flutter_logo: require("@/assets/images/flutter_logo.png"),
   icon: require("@/assets/images/icon.png"),
   favicon: require("@/assets/images/favicon.png"),
 

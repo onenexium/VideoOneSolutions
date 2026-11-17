@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 import { useNavigation, usePreventRemove } from "@react-navigation/native";

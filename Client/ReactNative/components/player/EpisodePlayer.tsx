@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import React, { useCallback, useState, useEffect, useMemo } from "react";
 import { View, StyleSheet, Dimensions, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -38,7 +35,6 @@ interface EpisodePlayerProps {
   dramaVideoOrientation?: number;
   startTime?: number;
   onEpisodeSelect?: (index: number) => void;
-  shouldTriggerScrollPreRender?: boolean; // Flag to trigger scroll pre-render
   onFullscreen?: () => void;
   /** Optional: called when the active video URL changes (forwarded from VideoPlayer) */
   onPlayUrlChange?: (url: string, currentTime: number) => void;
@@ -65,7 +61,6 @@ const EpisodePlayer: React.FC<EpisodePlayerProps> = ({
   dramaVideoOrientation = 0,
   startTime = 0,
   onEpisodeSelect,
-  shouldTriggerScrollPreRender = false,
   onFullscreen,
   onPlayUrlChange,
 }) => {
@@ -196,7 +191,6 @@ const EpisodePlayer: React.FC<EpisodePlayerProps> = ({
           playbackSpeed={playbackSpeed}
           onSpeedChange={onSpeedChange}
           onEpisodeSelect={onEpisodeSelect}
-          shouldTriggerScrollPreRender={shouldTriggerScrollPreRender}
           onPlayUrlChange={handlePlayUrlChange}
           isRemoteCasting={
             Platform.OS === "android" &&

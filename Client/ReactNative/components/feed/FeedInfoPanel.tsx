@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import SvgIcon from "@/components/ui/SvgIcon";
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
@@ -18,6 +15,8 @@ const InfoPanel: React.FC<InfoPanelProps> = ({ feedItem, onPress }) => {
     <TouchableOpacity
       style={styles.container}
       onPress={() => onPress(feedItem)}
+      accessibilityRole="button"
+      accessibilityLabel={feedItem.drama_meta.drama_title}
       activeOpacity={0.8}
     >
       {/* Anchor area */}

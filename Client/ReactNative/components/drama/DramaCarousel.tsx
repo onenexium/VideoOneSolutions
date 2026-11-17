@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import SvgIcon from "@/components/ui/SvgIcon";
 import React, { useState, useRef } from "react";
 import {
@@ -145,6 +142,8 @@ const CustomItem: React.FC<CustomItemProps> = ({
       <TouchableOpacity
         style={styles.itemContainer}
         onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={item.dramaTitle}
         activeOpacity={0.8}
       >
         <View style={styles.imageContainer}>

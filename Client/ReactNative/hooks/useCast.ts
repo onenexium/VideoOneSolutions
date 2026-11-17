@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 /**
  * useCast — unified screen-casting hook
  *
@@ -14,7 +11,7 @@
  * iOS     : custom native AirPlay relay
  *   • AVRoutePickerView displays the system route picker.
  *   • A native AVPlayer relay plays the current URL when AirPlay is active.
- *   • The relay reports progress so the BytePlus player can resume locally.
+ *   • The relay reports progress so the local player can resume locally.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';

@@ -1,8 +1,5 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, Dimensions } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from "react-native";
 import { DramaChannelMeta } from "../../types/drama";
 import DramaCover from "./DramaCover";
 import SvgIcon from "../ui/SvgIcon";
@@ -11,11 +8,13 @@ interface DramaListProps {
   data: DramaChannelMeta[];
   onItemPress: (drama: DramaChannelMeta) => void;
   type: "trending" | "new" | "recommend";
+  /** When set, the title shows a "See all" that calls it. */
+  onSeeAll?: () => void;
 }
 
 const { width: screenWidth } = Dimensions.get("window");
 
-const DramaList: React.FC<DramaListProps> = ({ data, onItemPress, type }) => {
+const DramaList: React.FC<DramaListProps> = ({ data, onItemPress, type, onSeeAll }) => {
   const getTitle = () => {
     switch (type) {
       case "trending":
@@ -28,6 +27,17 @@ const DramaList: React.FC<DramaListProps> = ({ data, onItemPress, type }) => {
         return "";
     }
   };
+
+  const seeAll = onSeeAll ? (
+    <TouchableOpacity
+      onPress={onSeeAll}
+      accessibilityRole="button"
+      accessibilityLabel={`See all ${getTitle()}`}
+      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+    >
+      <Text style={styles.seeAll}>See all ›</Text>
+    </TouchableOpacity>
+  ) : null;
 
   if (data.length === 0) {
     return null;
@@ -48,6 +58,7 @@ const DramaList: React.FC<DramaListProps> = ({ data, onItemPress, type }) => {
         <View style={styles.trendingTitle}>
           <Text style={[styles.title, styles.trendingTitleText]}>{getTitle()}</Text>
           <SvgIcon name="fire-colored" width={18} height={18} />
+          {seeAll && <View style={styles.seeAllSlot}>{seeAll}</View>}
         </View>
         <View style={styles.trendingContainer}>
           {/* Left column */}
@@ -96,7 +107,10 @@ const DramaList: React.FC<DramaListProps> = ({ data, onItemPress, type }) => {
   if (type === "new") {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>{getTitle()}</Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, styles.titleInRow]}>{getTitle()}</Text>
+          {seeAll}
+        </View>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -128,7 +142,10 @@ const DramaList: React.FC<DramaListProps> = ({ data, onItemPress, type }) => {
 
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>{getTitle()}</Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, styles.titleInRow]}>{getTitle()}</Text>
+          {seeAll}
+        </View>
         <View style={styles.recommendContainer}>
           {data.map((item) => (
             <View key={item.dramaId} style={styles.recommendItem}>
@@ -164,6 +181,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     letterSpacing: 0.2,
   },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingRight: 16,
+    marginBottom: 12,
+  },
+  titleInRow: { marginBottom: 0 },
+  seeAll: { color: "#B3B3B3", fontSize: 13 },
+  seeAllSlot: { flex: 1, alignItems: "flex-end" },
   trendingTitle: {
     flexDirection: "row",
     alignItems: "center",

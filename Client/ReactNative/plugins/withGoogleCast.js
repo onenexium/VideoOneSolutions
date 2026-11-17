@@ -1,6 +1,3 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 /**
  * Expo Config Plugin for react-native-google-cast (Android only)
  *
@@ -78,7 +75,7 @@ function addCastOptionsProvider(androidManifest) {
     app['meta-data'].push({
       $: {
         'android:name': PROVIDER_KEY,
-        'android:value': 'com.byteplus.videoone.rn.CastOptionsProvider',
+        'android:value': 'com.onenexium.ott.CastOptionsProvider',
       },
     });
   }

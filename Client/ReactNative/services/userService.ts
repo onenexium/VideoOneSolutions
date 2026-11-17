@@ -1,10 +1,7 @@
-// Copyright (c) 2023 BytePlus Pte. Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const USER_ID_KEY = "video_one_user_id";
-const USER_AVATAR_KEY = "video_one_user_avatar";
+const USER_ID_KEY = "onenexium_user_id";
+const USER_AVATAR_KEY = "onenexium_user_avatar";
 
 /**
  * User service class - Unified user ID management
